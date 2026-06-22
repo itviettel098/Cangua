@@ -1,815 +1,487 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cá Ngựa 3D - Zing Style</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;}
-body{
-  background:radial-gradient(ellipse at 50% 60%,#3a1060 0%,#1a0535 50%,#0a0220 100%);
-  width:100vw;height:100vh;overflow:hidden;
-  font-family:'Nunito',sans-serif;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-}
-#c{display:block;cursor:pointer;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Reader — Nhân bản giọng nói</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* HUD */
-#hud{
-  position:fixed;top:0;left:0;right:0;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:8px 18px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);z-index:10;
-}
-.logo{color:#ffe066;font-size:18px;font-weight:900;letter-spacing:1px;}
-.hud-r{color:#ccc;font-size:12px;font-weight:700;text-align:right;line-height:1.7;}
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f3;
+      --bg-tertiary: #efefed;
+      --text: #1a1a18;
+      --text-secondary: #6b6b67;
+      --text-tertiary: #9c9c97;
+      --border: rgba(0,0,0,0.12);
+      --border-md: rgba(0,0,0,0.22);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
 
-/* Player cards */
-#players{
-  position:fixed;left:0;top:50%;transform:translateY(-50%);
-  display:flex;flex-direction:column;gap:8px;padding:0 10px;z-index:10;
-}
-#players2{
-  position:fixed;right:0;top:50%;transform:translateY(-50%);
-  display:flex;flex-direction:column;gap:8px;padding:0 10px;z-index:10;
-}
-.pcard{
-  background:rgba(20,8,40,0.75);border:2px solid rgba(255,255,255,0.12);
-  border-radius:14px;padding:8px 12px;display:flex;flex-direction:column;
-  align-items:center;gap:4px;min-width:82px;transition:all .3s;
-}
-.pcard.active{border-color:#ffe066;box-shadow:0 0 16px #ffe06688;background:rgba(255,200,0,0.1);}
-.pcard .av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:20px;border:2px solid #fff3;}
-.p0 .av{border-color:#6699ff;} .p1 .av{border-color:#ffcc00;}
-.p2 .av{border-color:#55cc55;} .p3 .av{border-color:#ff77aa;}
-.pcard .pn{font-size:10px;color:#ddd;font-weight:800;}
-.pcard .ps{font-size:11px;color:#ffe066;font-weight:900;}
-.tarr{font-size:14px;display:none;}
-.pcard.active .tarr{display:block;}
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1c;
+        --bg-secondary: #2a2a28;
+        --bg-tertiary: #333330;
+        --text: #f0f0ec;
+        --text-secondary: #a0a09c;
+        --text-tertiary: #6e6e6a;
+        --border: rgba(255,255,255,0.1);
+        --border-md: rgba(255,255,255,0.2);
+      }
+    }
 
-/* Dice */
-#dice-wrap{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  display:flex;flex-direction:column;align-items:center;gap:6px;z-index:10;
-}
-#dice{
-  width:64px;height:64px;
-  background:linear-gradient(145deg,#fff 0%,#e0e0e0 100%);
-  border-radius:14px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.6),0 2px 6px rgba(255,255,255,0.3) inset;
-  display:flex;align-items:center;justify-content:center;
-  font-size:38px;cursor:pointer;border:none;
-  transition:transform .08s;
-}
-#dice:hover{transform:scale(1.1) translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,0.7);}
-#dice:active{transform:scale(0.93);}
-#dice.rolling{animation:spin .5s ease;}
-@keyframes spin{
-  0%{transform:rotate(0)scale(1)}
-  30%{transform:rotate(120deg)scale(1.2)}
-  70%{transform:rotate(280deg)scale(0.9)}
-  100%{transform:rotate(360deg)scale(1)}
-}
-#dlbl{color:#ffe066;font-size:11px;font-weight:800;background:rgba(0,0,0,0.55);
-  padding:3px 12px;border-radius:20px;text-shadow:0 1px 3px #000;}
+    body {
+      font-family: var(--font);
+      background: var(--bg-tertiary);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
 
-/* Status */
-#status{
-  position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
-  color:#fff;font-size:13px;font-weight:800;text-shadow:0 2px 8px #000;
-  background:rgba(0,0,0,0.5);padding:8px 22px;border-radius:24px;
-  border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(6px);
-  max-width:380px;text-align:center;z-index:10;
-}
+    .container { width: 100%; max-width: 640px; }
 
-/* Win */
-#win{position:fixed;inset:0;background:rgba(0,0,0,0.82);display:none;
-  align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:20px;}
-#win.show{display:flex;}
-#wbox{background:linear-gradient(135deg,#2a0d50,#4a1080);border:3px solid #ffe066;
-  border-radius:22px;padding:36px 56px;text-align:center;box-shadow:0 0 60px #ffe06644;}
-#wbox h1{color:#ffe066;font-size:38px;margin-bottom:6px;}
-#wbox p{color:#fff;font-size:17px;margin-bottom:22px;}
-#wbox button{background:linear-gradient(135deg,#ffe066,#ffa000);border:none;
-  border-radius:12px;padding:12px 34px;font-size:17px;font-weight:900;
-  color:#1a0a20;cursor:pointer;font-family:'Nunito',sans-serif;}
-</style>
+    header { margin-bottom: 1.5rem; }
+    header h1 { font-size: 22px; font-weight: 500; }
+    header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .voice-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .voice-chip {
+      padding: 6px 14px; border-radius: 999px; font-size: 13px;
+      border: 0.5px solid var(--border);
+      cursor: pointer; background: transparent; color: var(--text-secondary);
+      transition: all 0.12s; font-family: var(--font);
+    }
+    .voice-chip.selected { background: #EEEDFE; border-color: #AFA9EC; color: #3C3489; }
+    @media (prefers-color-scheme: dark) {
+      .voice-chip.selected { background: #26215C; border-color: #534AB7; color: #CECBF6; }
+    }
+
+    .record-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 14px;
+      border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md);
+      background: transparent;
+      font-size: 15px; font-weight: 500;
+      color: var(--text); font-family: var(--font);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .record-btn:hover { background: var(--bg-secondary); }
+    .record-btn.recording { background: #FCEBEB; border-color: #F09595; color: #A32D2D; }
+    @media (prefers-color-scheme: dark) {
+      .record-btn.recording { background: #501313; border-color: #E24B4A; color: #F7C1C1; }
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-tertiary); flex-shrink: 0; }
+    .record-btn.recording .dot { background: #E24B4A; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
+
+    .timer { font-size: 13px; color: var(--text-secondary); margin-top: 8px; text-align: center; min-height: 18px; }
+
+    .waveform-wrap {
+      height: 52px; border-radius: var(--radius-md);
+      background: var(--bg-secondary); border: 0.5px solid var(--border);
+      overflow: hidden; margin-top: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    canvas#waveform { width: 100%; height: 100%; display: block; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; padding: 4px 10px;
+      border-radius: 999px; border: 0.5px solid var(--border);
+      color: var(--text-secondary); margin-top: 10px;
+    }
+    .status-badge.ready { background: #EAF3DE; color: #3B6D11; border-color: #97C459; }
+    .status-badge.active { background: #FAEEDA; color: #854F0B; border-color: #EF9F27; }
+    .status-badge.done  { background: #E1F5EE; color: #0F6E56; border-color: #5DCAA5; }
+    @media (prefers-color-scheme: dark) {
+      .status-badge.ready { background: #173404; color: #C0DD97; border-color: #639922; }
+      .status-badge.active { background: #412402; color: #FAC775; border-color: #BA7517; }
+      .status-badge.done  { background: #04342C; color: #9FE1CB; border-color: #1D9E75; }
+    }
+
+    .rec-sample { margin-top: 12px; display: none; }
+    .rec-sample audio { width: 100%; margin-top: 6px; }
+
+    textarea {
+      width: 100%; padding: 10px 12px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      font-family: var(--font); font-size: 15px; line-height: 1.6;
+      color: var(--text); background: var(--bg-secondary);
+      resize: vertical; min-height: 100px; outline: none;
+    }
+    textarea:focus { border-color: var(--border-md); background: var(--bg); }
+
+    .sample-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .sample-chip {
+      font-size: 12px; padding: 4px 10px;
+      border: 0.5px solid var(--border); border-radius: 999px;
+      cursor: pointer; color: var(--text-secondary);
+      background: var(--bg-secondary); font-family: var(--font);
+      transition: background 0.12s;
+    }
+    .sample-chip:hover { background: var(--bg); border-color: var(--border-md); }
+
+    .slider-group { display: flex; flex-direction: column; gap: 10px; }
+    .slider-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+    .slider-row label { min-width: 64px; }
+    .slider-row input[type=range] { flex: 1; }
+    .slider-val { min-width: 40px; text-align: right; font-weight: 500; color: var(--text); font-size: 13px; }
+
+    .action-row { display: flex; gap: 8px; margin-top: 14px; }
+    .btn {
+      flex: 1; padding: 12px;
+      background: transparent; border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-md); font-size: 15px; font-weight: 500;
+      color: var(--text); font-family: var(--font); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.15s;
+    }
+    .btn:hover:not(:disabled) { background: var(--bg-secondary); }
+    .btn:disabled { opacity: 0.38; cursor: default; }
+    .btn.speaking { background: #E1F5EE; border-color: #5DCAA5; color: #0F6E56; }
+    .btn-stop { flex: 0 0 auto; padding: 12px 16px; }
+    @media (prefers-color-scheme: dark) {
+      .btn.speaking { background: #04342C; border-color: #1D9E75; color: #9FE1CB; }
+    }
+
+    .info-tip { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; line-height: 1.5; }
+
+    .playing-card { display: none; }
+    .playing-bars { display: flex; gap: 3px; align-items: flex-end; height: 28px; }
+    .bar { width: 4px; background: #1D9E75; border-radius: 2px; }
+    .bar:nth-child(1){animation:b1 .8s infinite alternate}
+    .bar:nth-child(2){animation:b2 .8s infinite alternate}
+    .bar:nth-child(3){animation:b3 .8s infinite alternate}
+    .bar:nth-child(4){animation:b4 .8s infinite alternate}
+    .bar:nth-child(5){animation:b5 .8s infinite alternate}
+    @keyframes b1{from{height:6px}to{height:24px}}
+    @keyframes b2{from{height:14px}to{height:8px}}
+    @keyframes b3{from{height:10px}to{height:26px}}
+    @keyframes b4{from{height:18px}to{height:6px}}
+    @keyframes b5{from{height:8px}to{height:20px}}
+
+    footer { text-align: center; font-size: 12px; color: var(--text-tertiary); margin-top: 1rem; }
+  </style>
 </head>
 <body>
+<div class="container">
+  <header>
+    <h1>🎙️ Voice Reader</h1>
+    <p>Ghi âm giọng nói của bạn, rồi dùng giọng đó để đọc bất kỳ đoạn text nào.</p>
+  </header>
 
-<div id="hud">
-  <div class="logo">🐴 Cá Ngựa 3D</div>
-  <div class="hud-r">Lượt còn: <span id="tleft">15</span><br>Mức chơi: <b>3,000</b></div>
+  <!-- Step 1 -->
+  <div class="card">
+    <div class="section-label">bước 1 — chọn giọng</div>
+    <div class="voice-chips">
+      <button class="voice-chip selected" onclick="selectVoiceType('mine')" id="chip-mine">🎙️ Ghi âm của tôi</button>
+      <button class="voice-chip" onclick="selectVoiceType('male')" id="chip-male">👨 Nam (hệ thống)</button>
+      <button class="voice-chip" onclick="selectVoiceType('female')" id="chip-female">👩 Nữ (hệ thống)</button>
+      <button class="voice-chip" onclick="selectVoiceType('child')" id="chip-child">🧒 Trẻ em</button>
+    </div>
+
+    <div id="record-section">
+      <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
+        <span class="dot" id="dot"></span>
+        <span id="record-label">Bắt đầu ghi âm</span>
+      </button>
+      <div class="timer" id="timer"></div>
+      <div class="waveform-wrap"><canvas id="waveform" width="600" height="52"></canvas></div>
+      <div class="rec-sample" id="rec-sample">
+        <div class="section-label" style="margin-top:10px;margin-bottom:4px;">nghe lại</div>
+        <audio id="rec-audio" controls></audio>
+      </div>
+    </div>
+
+    <span class="status-badge" id="voice-status">
+      <i class="ti ti-microphone"></i> Chưa ghi âm
+    </span>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="card">
+    <div class="section-label">bước 2 — nhập text cần đọc</div>
+    <textarea id="tts-text" placeholder="Nhập văn bản bạn muốn đọc bằng giọng đã chọn..."></textarea>
+    <div class="sample-chips">
+      <span class="sample-chip" onclick="setSample('Xin chào, đây là giọng nói của tôi. Rất vui được gặp bạn!')">Lời chào</span>
+      <span class="sample-chip" onclick="setSample('Hôm nay thời tiết rất đẹp, tôi muốn đi dạo công viên cùng bạn bè.')">Thời tiết</span>
+      <span class="sample-chip" onclick="setSample('Trí tuệ nhân tạo đang thay đổi thế giới với tốc độ chưa từng có trong lịch sử loài người.')">Công nghệ</span>
+      <span class="sample-chip" onclick="setSample('Việt Nam là đất nước có nền văn hóa phong phú và đa dạng, với hơn 54 dân tộc anh em.')">Việt Nam</span>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="card">
+    <div class="section-label">bước 3 — cài đặt & đọc</div>
+    <div class="slider-group">
+      <div class="slider-row">
+        <label><i class="ti ti-typography" style="font-size:15px;vertical-align:-2px"></i> Tốc độ</label>
+        <input type="range" id="rate-slider" min="0.5" max="2" step="0.1" value="1" oninput="updateSliders()">
+        <span class="slider-val" id="rate-val">1.0×</span>
+      </div>
+      <div class="slider-row">
+        <label><i class="ti ti-wave-sine" style="font-size:15px;vertical-align:-2px"></i> Cao độ</label>
+        <input type="range" id="pitch-slider" min="0.5" max="2" step="0.1" value="1" oninput="updateSliders()">
+        <span class="slider-val" id="pitch-val">1.0</span>
+      </div>
+      <div class="slider-row">
+        <label><i class="ti ti-volume" style="font-size:15px;vertical-align:-2px"></i> Âm lượng</label>
+        <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="1" oninput="updateSliders()">
+        <span class="slider-val" id="vol-val">100%</span>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="btn" id="speakBtn" onclick="toggleSpeak()" disabled>
+        <i class="ti ti-player-play" id="play-icon"></i>
+        <span id="speak-label">Đọc văn bản</span>
+      </button>
+      <button class="btn btn-stop" id="stopBtn" onclick="stopSpeak()" disabled title="Dừng">
+        <i class="ti ti-player-stop"></i>
+      </button>
+    </div>
+    <p class="info-tip" id="speak-tip">Ghi âm giọng ở bước 1 hoặc chọn giọng hệ thống để bắt đầu.</p>
+  </div>
+
+  <!-- Playing indicator -->
+  <div class="card playing-card" id="playing-card">
+    <div class="section-label">đang phát</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="playing-bars">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div>
+      </div>
+      <span style="font-size:14px;color:var(--text-secondary);" id="playing-preview"></span>
+    </div>
+  </div>
+
+  <footer>Voice Reader · Web Speech API · Hoạt động tốt nhất trên Chrome / Edge</footer>
 </div>
 
-<canvas id="c"></canvas>
-
-<div id="players">
-  <div class="pcard p0" id="c0">
-    <div class="tarr">▶</div>
-    <div class="av">🦁</div>
-    <div class="pn">Bạn</div>
-    <div class="ps" id="s0">0</div>
-  </div>
-  <div class="pcard p2" id="c2">
-    <div class="tarr">▶</div>
-    <div class="av">🐸</div>
-    <div class="pn">Máy 2</div>
-    <div class="ps" id="s2">0</div>
-  </div>
-</div>
-
-<div id="players2">
-  <div class="pcard p1" id="c1">
-    <div class="tarr">◀</div>
-    <div class="av">🐯</div>
-    <div class="pn">Máy 1</div>
-    <div class="ps" id="s1">0</div>
-  </div>
-  <div class="pcard p3" id="c3">
-    <div class="tarr">◀</div>
-    <div class="av">🐰</div>
-    <div class="pn">Máy 3</div>
-    <div class="ps" id="s3">0</div>
-  </div>
-</div>
-
-<div id="dice-wrap">
-  <button id="dice">⚀</button>
-  <div id="dlbl">Nhấn để lắc xúc xắc</div>
-</div>
-
-<div id="status">Nhấn xúc xắc để bắt đầu! 🎲</div>
-
-<div id="win">
-  <div id="wbox">
-    <h1 id="wt">🏆 Chiến Thắng!</h1>
-    <p id="wm">Bạn đã thắng!</p>
-    <button onclick="restart()">Chơi lại</button>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ============================================================
-// THREE.JS 3D LUDO - ZING STYLE
-// ============================================================
+  let mediaRecorder = null, audioChunks = [], isRecording = false;
+  let recordedBlob = null, timerInterval = null, seconds = 0;
+  let animFrame = null, audioCtx = null, analyser = null;
+  let stream = null, selectedVoiceType = 'mine';
+  let voiceReady = false, isSpeaking = false;
+  let voices = [];
 
-const W = window.innerWidth, H = window.innerHeight;
-const canvas = document.getElementById('c');
-canvas.width = W; canvas.height = H;
+  const synth = window.speechSynthesis;
 
-// Renderer
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
-renderer.setSize(W, H);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  function loadVoices() { voices = synth.getVoices(); }
+  loadVoices();
+  if (speechSynthesis.onvoiceschanged !== undefined)
+    speechSynthesis.onvoiceschanged = loadVoices;
 
-// Scene
-const scene = new THREE.Scene();
-
-// Camera - isometric-ish perspective like Zing
-const camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
-camera.position.set(0, 14, 10);
-camera.lookAt(0, 0, 0);
-
-// Lighting
-const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambient);
-
-const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
-dirLight.position.set(5, 12, 8);
-dirLight.castShadow = true;
-dirLight.shadow.mapSize.width = 2048;
-dirLight.shadow.mapSize.height = 2048;
-dirLight.shadow.camera.near = 0.5;
-dirLight.shadow.camera.far = 50;
-dirLight.shadow.camera.left = -12;
-dirLight.shadow.camera.right = 12;
-dirLight.shadow.camera.top = 12;
-dirLight.shadow.camera.bottom = -12;
-scene.add(dirLight);
-
-const fillLight = new THREE.DirectionalLight(0x8888ff, 0.4);
-fillLight.position.set(-5, 8, -5);
-scene.add(fillLight);
-
-const rimLight = new THREE.PointLight(0xff44aa, 0.6, 30);
-rimLight.position.set(-6, 6, -6);
-scene.add(rimLight);
-
-// ============================================================
-// COLORS
-// ============================================================
-const COLS = [
-  {h:0x4477ff, l:0xaaccff, d:0x1133aa, base:0x0a2060, carpet:0x1a3388},  // Blue
-  {h:0xffcc00, l:0xffee88, d:0xaa6600, base:0x553300, carpet:0x997700},  // Yellow
-  {h:0x44bb44, l:0x99ee99, d:0x116611, base:0x0a3a0a, carpet:0x226622},  // Green
-  {h:0xff4499, l:0xffaacc, d:0xaa0055, base:0x550030, carpet:0x991155},  // Pink
-];
-
-// ============================================================
-// BOARD GEOMETRY
-// ============================================================
-// Board is 15x15 units, centered at origin
-// Each cell = 1 unit. Board goes from -7.5 to 7.5
-
-const CELL = 1.0;
-const BOARD_OFF = -7.5 + CELL/2; // offset to center
-
-function cellPos(c, r) {
-  return new THREE.Vector3(
-    BOARD_OFF + c * CELL,
-    0,
-    BOARD_OFF + r * CELL
-  );
-}
-
-// Board base platform
-function createBoardBase() {
-  const geom = new THREE.BoxGeometry(16.2, 0.3, 16.2);
-  const mat = new THREE.MeshLambertMaterial({color:0x2a0a4a});
-  const mesh = new THREE.Mesh(geom, mat);
-  mesh.position.y = -0.3;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
-
-  // Ellipse glow under board
-  const gGeom = new THREE.CylinderGeometry(9, 9, 0.05, 64);
-  const gMat = new THREE.MeshBasicMaterial({color:0x660099, transparent:true, opacity:0.3});
-  const gMesh = new THREE.Mesh(gGeom, gMat);
-  gMesh.position.y = -0.44;
-  gMesh.scale.set(1,1,0.7);
-  scene.add(gMesh);
-}
-
-// 3D game cell (the shiny square tile)
-function createCell(c, r, color, height=0.28, special=null) {
-  const group = new THREE.Group();
-
-  // Main box
-  const w = CELL * 0.88;
-  const geom = new THREE.BoxGeometry(w, height, w);
-
-  // Multi-material for top/sides
-  const topMat = new THREE.MeshPhongMaterial({
-    color: color,
-    shininess: 120,
-    specular: new THREE.Color(0xffffff),
-  });
-  const sideMat = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(color).multiplyScalar(0.55),
-    shininess: 40,
-  });
-  const botMat = new THREE.MeshPhongMaterial({color:0x111111});
-
-  const mesh = new THREE.Mesh(geom, [sideMat,sideMat,topMat,botMat,sideMat,sideMat]);
-  mesh.position.y = height/2;
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  group.add(mesh);
-
-  // Top highlight plane (gloss effect)
-  const hlGeom = new THREE.PlaneGeometry(w*0.7, w*0.25);
-  const hlMat = new THREE.MeshBasicMaterial({
-    color:0xffffff, transparent:true, opacity:0.22
-  });
-  const hl = new THREE.Mesh(hlGeom, hlMat);
-  hl.rotation.x = -Math.PI/2;
-  hl.position.set(-w*0.12, height+0.001, -w*0.18);
-  group.add(hl);
-
-  // Rounded edges illusion: thin border
-  const bGeom = new THREE.BoxGeometry(w+0.02, height+0.01, w+0.02);
-  const bMat = new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.1,wireframe:false});
-  // skip wireframe border, just keep clean
-
-  const pos = cellPos(c, r);
-  group.position.copy(pos);
-
-  return group;
-}
-
-// Home zone (colored carpet area)
-function createHomeZone(c, r, w, h, color) {
-  const geom = new THREE.BoxGeometry(w*CELL - 0.1, 0.12, h*CELL - 0.1);
-  const mat = new THREE.MeshPhongMaterial({color, shininess:20});
-  const mesh = new THREE.Mesh(geom, mat);
-  const center = cellPos(c + (w-1)/2, r + (h-1)/2);
-  mesh.position.set(center.x, 0.06, center.z);
-  mesh.receiveShadow = true;
-  scene.add(mesh);
-
-  // Circle slots in home zone
-  return mesh;
-}
-
-// Base slot circles
-function createBaseSlot(c, r, color) {
-  const geom = new THREE.CylinderGeometry(0.32, 0.32, 0.08, 32);
-  const mat = new THREE.MeshPhongMaterial({color, shininess:60});
-  const mesh = new THREE.Mesh(geom, mat);
-  const pos = cellPos(c, r);
-  mesh.position.set(pos.x, 0.1, pos.z);
-  mesh.receiveShadow = true;
-  scene.add(mesh);
-
-  // Inner dark depression
-  const iGeom = new THREE.CylinderGeometry(0.22, 0.22, 0.04, 32);
-  const iMat = new THREE.MeshPhongMaterial({color:0x111111});
-  const iMesh = new THREE.Mesh(iGeom, iMat);
-  iMesh.position.set(pos.x, 0.14, pos.z);
-  scene.add(iMesh);
-}
-
-// Star marker on special cells
-function createStarDecal(group) {
-  // Gold disc on top
-  const geom = new THREE.CylinderGeometry(0.18, 0.18, 0.02, 6);
-  const mat = new THREE.MeshPhongMaterial({color:0xffcc00,shininess:200,specular:0xffffaa});
-  const mesh = new THREE.Mesh(geom, mat);
-  mesh.position.y = 0.3;
-  group.add(mesh);
-}
-
-// TAX marker
-function createTaxDecal(group, color) {
-  const geom = new THREE.BoxGeometry(0.5, 0.05, 0.22);
-  const mat = new THREE.MeshPhongMaterial({color, shininess:80});
-  const mesh = new THREE.Mesh(geom, mat);
-  mesh.position.y = 0.31;
-  mesh.rotation.y = Math.PI/4;
-  group.add(mesh);
-}
-
-// ============================================================
-// BOARD PATH DEFINITION (52 cells, 15x15 grid)
-// ============================================================
-const PATH = [];
-(function(){
-  const a=(c,r)=>PATH.push([c,r]);
-  // Blue goes up (col 6, rows 13->8)
-  for(let r=13;r>=8;r--) a(6,r);    // 0-5
-  a(6,7);                             // 6 (safe star)
-  // goes left (row 6... wait in the video the path goes around the cross shape)
-  // Row 8 left from col5 to col0
-  for(let c=5;c>=0;c--) a(c,8);     // 7-12 (Yellow start at 7? no...)
-  // col 0 going up rows 7->2
-  for(let r=7;r>=2;r--) a(0,r);     // 13-18 (Yellow start at 13)
-  a(0,1); a(0,0);                     // 19-20
-  // row 0 going right cols 1->6
-  for(let c=1;c<=6;c++) a(c,0);     // 21-26
-  a(7,0); a(8,0);                     // 27-28 (Green start at 26)
-  // row 0 right cols 9->13
-  for(let c=9;c<=14;c++) a(c,0);    // 29-34 (but 14 is edge)
-  // col 14 going down rows 1->6
-  for(let r=1;r<=6;r++) a(14,r);    // 35-40 (Pink start at 39)
-  // row 6 right... wait we need row 8 on right side
-  a(14,7); a(14,8);                   // 41-42 (safe)
-  // col 14 down rows 9->13
-  for(let r=9;r<=13;r++) a(14,r);   // 43-47
-  a(14,14); a(13,14);                 // 48-49
-  // row 14 going left cols 12->9
-  for(let c=12;c>=8;c--) a(c,14);  // 50-53 too many
-  while(PATH.length>52) PATH.pop();
-  // Make sure we have exactly 52 and last connects back to start
-})();
-
-// Player start positions on PATH
-const PSTART = [0, 13, 26, 39];
-// Safe squares (star positions)
-const SAFE_IDX = new Set([0,6,13,19,26,32,39,45]);
-// Home stretch (6 cells each, going toward center)
-const HSTRETCH = [
-  [[7,13],[7,12],[7,11],[7,10],[7,9],[7,8]],   // Blue: col7 rows13->8
-  [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]],         // Yellow: row7 cols1->6
-  [[7,1],[7,2],[7,3],[7,4],[7,5],[7,6]],         // Green: col7 rows1->6
-  [[13,7],[12,7],[11,7],[10,7],[9,7],[8,7]],     // Pink: row7 cols13->8
-];
-// Base slots for each player
-const BASES = [
-  [[1,10],[3,10],[1,12],[3,12]],
-  [[11,1],[13,1],[11,3],[13,3]],
-  [[11,10],[13,10],[11,12],[13,12]],
-  [[1,1],[3,1],[1,3],[3,3]],
-];
-
-// ============================================================
-// BUILD THE BOARD
-// ============================================================
-const cellMeshes = []; // for raycasting click detection
-
-function buildBoard() {
-  createBoardBase();
-
-  // Home zone carpets
-  createHomeZone(0, 9, 6, 6, COLS[0].carpet);   // Blue bottom-left
-  createHomeZone(9, 0, 6, 6, COLS[1].carpet);   // Yellow top-right
-  createHomeZone(9, 9, 6, 6, COLS[2].carpet);   // Green bottom-right
-  createHomeZone(0, 0, 6, 6, COLS[3].carpet);   // Pink top-left
-
-  // Center zone (3x3)
-  const cGeom = new THREE.BoxGeometry(3*CELL-0.1, 0.12, 3*CELL-0.1);
-  const cMat = new THREE.MeshPhongMaterial({color:0x2a0060});
-  const cMesh = new THREE.Mesh(cGeom, cMat);
-  const cc = cellPos(6,6);
-  const cc2 = cellPos(8,8);
-  cMesh.position.set((cc.x+cc2.x)/2, 0.06, (cc.z+cc2.z)/2);
-  scene.add(cMesh);
-
-  // Center triangles (4 colored)
-  function tri3d(pts, color) {
-    const shape = new THREE.Shape();
-    shape.moveTo(pts[0][0], pts[0][1]);
-    shape.lineTo(pts[1][0], pts[1][1]);
-    shape.lineTo(pts[2][0], pts[2][1]);
-    shape.closePath();
-    const geom = new THREE.ShapeGeometry(shape);
-    const mat = new THREE.MeshBasicMaterial({color, side:THREE.DoubleSide,transparent:true,opacity:0.6});
-    const m = new THREE.Mesh(geom, mat);
-    m.rotation.x = -Math.PI/2;
-    m.position.y = 0.13;
-    scene.add(m);
-  }
-  const c6=BOARD_OFF+6*CELL, c9=BOARD_OFF+9*CELL, cm=BOARD_OFF+7.5*CELL;
-  tri3d([[c6,c6],[c9,c6],[cm,cm]], COLS[2].h);  // top
-  tri3d([[c6,c9],[c9,c9],[cm,cm]], COLS[3].h);  // bottom
-  tri3d([[c6,c6],[c6,c9],[cm,cm]], COLS[0].h);  // left
-  tri3d([[c9,c6],[c9,c9],[cm,cm]], COLS[1].h);  // right
-
-  // Home base slots
-  BASES.forEach((slots, pi) => {
-    slots.forEach(([c,r]) => createBaseSlot(c, r, COLS[pi].d));
-  });
-
-  // Home stretch colored tiles
-  HSTRETCH.forEach((lane, pi) => {
-    lane.forEach(([c,r]) => {
-      const g = createCell(c, r, COLS[pi].h, 0.22);
-      scene.add(g);
-    });
-  });
-
-  // Outer path cells
-  PATH.forEach(([c,r], idx) => {
-    let color = 0xd0c8e8;
-    const isStart = PSTART.includes(idx);
-    const isSafe = SAFE_IDX.has(idx);
-    if(isStart) {
-      const pi = PSTART.indexOf(idx);
-      color = COLS[pi].h;
-    } else if(isSafe) {
-      color = 0xffdd44;
-    }
-    const g = createCell(c, r, color, 0.25);
-    if(isSafe && !isStart) createStarDecal(g);
-    scene.add(g);
-  });
-}
-
-// ============================================================
-// GAME PIECES (3D horse/token)
-// ============================================================
-function createPiece(playerIdx, pieceIdx) {
-  const group = new THREE.Group();
-  const col = COLS[playerIdx];
-
-  // Base disc
-  const bGeom = new THREE.CylinderGeometry(0.22, 0.25, 0.1, 24);
-  const bMat = new THREE.MeshPhongMaterial({color:col.d, shininess:80});
-  const base = new THREE.Mesh(bGeom, bMat);
-  base.position.y = 0.05;
-  base.castShadow = true;
-  group.add(base);
-
-  // Body (tapered cylinder)
-  const bodyGeom = new THREE.CylinderGeometry(0.14, 0.20, 0.32, 20);
-  const bodyMat = new THREE.MeshPhongMaterial({
-    color:col.h, shininess:160, specular:new THREE.Color(0xffffff)
-  });
-  const body = new THREE.Mesh(bodyGeom, bodyMat);
-  body.position.y = 0.26;
-  body.castShadow = true;
-  group.add(body);
-
-  // Highlight on body
-  const hlGeom = new THREE.CylinderGeometry(0.07, 0.09, 0.14, 12);
-  const hlMat = new THREE.MeshPhongMaterial({color:col.l,shininess:200,specular:0xffffff});
-  const hl = new THREE.Mesh(hlGeom, hlMat);
-  hl.position.set(-0.04, 0.30, -0.04);
-  group.add(hl);
-
-  // Head (sphere)
-  const hGeom = new THREE.SphereGeometry(0.16, 20, 20);
-  const hMat = new THREE.MeshPhongMaterial({color:col.h,shininess:180,specular:0xffffff});
-  const head = new THREE.Mesh(hGeom, hMat);
-  head.position.y = 0.54;
-  head.castShadow = true;
-  group.add(head);
-
-  // Top gem
-  const gGeom = new THREE.SphereGeometry(0.07, 12, 12);
-  const gMat = new THREE.MeshPhongMaterial({color:col.l,shininess:400,specular:0xffffff,transparent:true,opacity:0.9});
-  const gem = new THREE.Mesh(gGeom, gMat);
-  gem.position.y = 0.7;
-  group.add(gem);
-
-  group.userData = {player:playerIdx, piece:pieceIdx, type:'piece'};
-  group.castShadow = true;
-
-  return group;
-}
-
-// ============================================================
-// GAME STATE
-// ============================================================
-const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
-
-let G = {
-  cur:0, dice:0, rolled:false, phase:'roll',
-  turns:15, scores:[0,0,0,0], won:false,
-  pieces: Array.from({length:4},()=>Array.from({length:4},()=>({
-    on:false, pathPos:0, homePos:-1, done:false
-  }))),
-  pieceMeshes: [], // [player][piece] = THREE.Group
-};
-
-function pname(i){return['Bạn','Máy 1','Máy 2','Máy 3'][i];}
-function setMsg(m){document.getElementById('status').textContent=m;}
-function updateUI(){
-  for(let p=0;p<4;p++){
-    document.getElementById('c'+p).classList.toggle('active',p===G.cur);
-    document.getElementById('s'+p).textContent=G.scores[p].toLocaleString();
-  }
-  document.getElementById('tleft').textContent=G.turns;
-}
-
-// Get world position for piece
-function getPieceWorldPos(player, pidx) {
-  const pc = G.pieces[player][pidx];
-  if(pc.done) return null;
-  let col, row;
-  if(!pc.on) {
-    [col,row] = BASES[player][pidx];
-  } else if(pc.homePos>=0) {
-    if(pc.homePos>=6) return null;
-    [col,row] = HSTRETCH[player][pc.homePos];
-  } else {
-    const abs = (PSTART[player]+pc.pathPos)%52;
-    [col,row] = PATH[abs];
-  }
-  const p = cellPos(col,row);
-  return new THREE.Vector3(p.x, 0.45, p.z);
-}
-
-function updatePieceMeshPositions() {
-  for(let p=0;p<4;p++) {
-    for(let i=0;i<4;i++) {
-      const mesh = G.pieceMeshes[p][i];
-      const pos = getPieceWorldPos(p, i);
-      if(!pos || G.pieces[p][i].done) {
-        mesh.visible = !G.pieces[p][i].done;
-        if(!pos) mesh.visible=false;
-      } else {
-        mesh.visible = true;
-        // Smooth movement
-        mesh.position.lerp(pos, 0.18);
-      }
-    }
-  }
-}
-
-// Highlight pulse animation
-let hlTime = 0;
-function updateHighlights(dt) {
-  hlTime += dt;
-  if(G.phase==='move' && G.cur===0) {
-    const mv = getMoveable(0);
-    for(let p=0;p<4;p++) {
-      for(let i=0;i<4;i++) {
-        const mesh = G.pieceMeshes[p][i];
-        if(p===0 && mv.includes(i)) {
-          const s = 1 + 0.08*Math.sin(hlTime*6);
-          mesh.scale.set(s,s,s);
-          // Glow effect: make gem pulse
-          mesh.children[4] && (mesh.children[4].material.emissive = new THREE.Color(COLS[0].l).multiplyScalar(0.5+0.5*Math.sin(hlTime*6)));
-        } else {
-          mesh.scale.set(1,1,1);
-        }
-      }
-    }
-  } else {
-    for(let p=0;p<4;p++) for(let i=0;i<4;i++) G.pieceMeshes[p][i].scale.set(1,1,1);
-  }
-}
-
-// ============================================================
-// GAME LOGIC
-// ============================================================
-function getMoveable(player) {
-  const mv=[];
-  for(let i=0;i<4;i++){
-    const pc=G.pieces[player][i];
-    if(pc.done) continue;
-    if(!pc.on){if(G.dice===6) mv.push(i);}
-    else if(pc.homePos>=0){if(G.dice<=5-pc.homePos) mv.push(i);}
-    else mv.push(i);
-  }
-  return mv;
-}
-
-function absPathPos(player, piece) {
-  if(!piece.on||piece.done||piece.homePos>=0) return -1;
-  return (PSTART[player]+piece.pathPos)%52;
-}
-
-function doMove(player, pidx) {
-  const pc=G.pieces[player][pidx], d=G.dice;
-  if(!pc.on){
-    pc.on=true;pc.pathPos=0;
-    setMsg(`${pname(player)} ra quân! 🐴`);
-  } else if(pc.homePos>=0){
-    pc.homePos+=d;
-    if(pc.homePos>=6){pc.homePos=5;pc.done=true;G.scores[player]+=100;
-      setMsg(`🎉 ${pname(player)} về đích! +100`);}
-  } else {
-    pc.pathPos+=d;
-    if(pc.pathPos>49){
-      pc.homePos=Math.min(pc.pathPos-50,5);
-      pc.pathPos=50;
-      if(pc.homePos>=5){pc.done=true;G.scores[player]+=100;setMsg(`🎉 ${pname(player)} về đích! +100`);}
+  function selectVoiceType(type) {
+    selectedVoiceType = type;
+    ['mine','male','female','child'].forEach(t =>
+      document.getElementById('chip-'+t).classList.toggle('selected', t===type));
+    document.getElementById('record-section').style.display = type==='mine' ? '' : 'none';
+    if (type !== 'mine') {
+      voiceReady = true;
+      setStatus('ready', getVoiceName(type));
     } else {
-      checkKill(player,pidx);
+      voiceReady = !!recordedBlob;
+      setStatus(voiceReady ? 'done' : 'none', voiceReady ? 'Đã ghi âm — sẵn sàng' : 'Chưa ghi âm');
     }
+    updateSpeakBtn();
   }
-  // Snap position immediately
-  const pos=getPieceWorldPos(player,pidx);
-  if(pos) G.pieceMeshes[player][pidx].position.copy(pos);
-}
 
-function checkKill(player,pidx){
-  const myAbs=absPathPos(player,G.pieces[player][pidx]);
-  if(myAbs<0||SAFE_IDX.has(myAbs)) return;
-  for(let op=0;op<4;op++){
-    if(op===player) continue;
-    for(let oi=0;oi<4;oi++){
-      const other=G.pieces[op][oi];
-      if(!other.on||other.done||other.homePos>=0) continue;
-      if(absPathPos(op,other)===myAbs){
-        other.on=false;other.pathPos=0;other.homePos=-1;
-        G.scores[player]+=50;
-        setMsg(`⚡ ${pname(player)} bắt quân ${pname(op)}! +50`);
-        const bpos=cellPos(BASES[op][oi][0],BASES[op][oi][1]);
-        G.pieceMeshes[op][oi].position.set(bpos.x,0.45,bpos.z);
-      }
-    }
+  function getVoiceName(t) {
+    return {mine:'Giọng của bạn',male:'Giọng nam hệ thống',female:'Giọng nữ hệ thống',child:'Giọng trẻ em'}[t]||'';
   }
-}
 
-function checkWin(p){return G.pieces[p].every(x=>x.done);}
-
-function nextTurn(extra=false){
-  if(!extra){G.cur=(G.cur+1)%4;if(G.cur===0){G.turns--;if(G.turns<=0){endGame(-1);return;}}}
-  G.rolled=false;G.phase='roll';updateUI();
-  if(checkWin(G.cur)){endGame(G.cur);return;}
-  if(G.cur===0){setMsg('Lượt của bạn! Nhấn xúc xắc 🎲');}
-  else{setMsg(`${pname(G.cur)} đang suy nghĩ...`);setTimeout(aiTurn,900);}
-}
-
-function aiTurn(){
-  if(G.cur===0||G.won) return;
-  const d=Math.floor(Math.random()*6)+1;
-  G.dice=d;G.rolled=true;
-  document.getElementById('dice').textContent=DICE_FACES[d-1];
-  const mv=getMoveable(G.cur);
-  setTimeout(()=>{
-    if(!mv.length){setMsg(`${pname(G.cur)} tung ${d} - không đi được`);setTimeout(()=>nextTurn(d===6),500);return;}
-    let best=mv[0],bs=-1;
-    for(const pi of mv){
-      const pc=G.pieces[G.cur][pi];
-      let sc=!pc.on?1:pc.homePos>=0?200+pc.homePos:10+pc.pathPos;
-      if(sc>bs){bs=sc;best=pi;}
-    }
-    doMove(G.cur,best);updateUI();
-    if(checkWin(G.cur)){endGame(G.cur);return;}
-    setTimeout(()=>nextTurn(d===6),700);
-  },500);
-}
-
-function endGame(winner){
-  G.won=true;
-  document.getElementById('win').classList.add('show');
-  if(winner===0){document.getElementById('wt').textContent='🏆 Chiến Thắng!';document.getElementById('wm').textContent='Bạn đã giành chiến thắng! 🎊';}
-  else if(winner===-1){document.getElementById('wt').textContent='⏰ Hết Giờ!';const b=G.scores.indexOf(Math.max(...G.scores));document.getElementById('wm').textContent=`${pname(b)} dẫn đầu với ${G.scores[b]} điểm!`;}
-  else{document.getElementById('wt').textContent='😢 Thua Rồi!';document.getElementById('wm').textContent=`${pname(winner)} đã về đích trước!`;}
-}
-
-function restart(){
-  document.getElementById('win').classList.remove('show');
-  // Remove old pieces
-  G.pieceMeshes.forEach(pp=>pp.forEach(m=>scene.remove(m)));
-  initGame();
-}
-
-function initGame(){
-  G.cur=0;G.dice=0;G.rolled=false;G.phase='roll';
-  G.turns=15;G.scores=[0,0,0,0];G.won=false;
-  G.pieces=Array.from({length:4},()=>Array.from({length:4},()=>({on:false,pathPos:0,homePos:-1,done:false})));
-  G.pieceMeshes=[];
-  for(let p=0;p<4;p++){
-    G.pieceMeshes[p]=[];
-    for(let i=0;i<4;i++){
-      const m=createPiece(p,i);
-      const b=BASES[p][i];
-      const pos=cellPos(b[0],b[1]);
-      m.position.set(pos.x,0.45,pos.z);
-      scene.add(m);
-      G.pieceMeshes[p].push(m);
-    }
+  function setStatus(state, label) {
+    const el = document.getElementById('voice-status');
+    el.className = 'status-badge' + (state==='ready'||state==='done'?' ready':state==='active'?' active':'');
+    const icons = {none:'ti-microphone',active:'ti-radio',ready:'ti-check',done:'ti-check'};
+    el.innerHTML = `<i class="ti ${icons[state]||'ti-microphone'}"></i> ${label}`;
   }
-  updateUI();setMsg('Nhấn xúc xắc để bắt đầu! 🎲');
-  document.getElementById('dice').textContent='⚀';
-}
 
-// ============================================================
-// CLICK DETECTION (Raycasting)
-// ============================================================
-const raycaster=new THREE.Raycaster();
-const mouse=new THREE.Vector2();
-
-canvas.addEventListener('click',e=>{
-  if(G.cur!==0||G.phase!=='move'||G.won) return;
-  const rect=canvas.getBoundingClientRect();
-  mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
-  mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
-  raycaster.setFromCamera(mouse,camera);
-  const mv=getMoveable(0);
-  // Collect all child meshes of moveable pieces
-  const targets=[];
-  mv.forEach(pi=>G.pieceMeshes[0][pi].traverse(m=>{if(m.isMesh)targets.push(m);}));
-  const hits=raycaster.intersectObjects(targets,true);
-  if(hits.length){
-    let hitGroup=hits[0].object;
-    while(hitGroup.parent&&!hitGroup.userData.player===undefined) hitGroup=hitGroup.parent;
-    // find which piece was hit
-    for(const pi of mv){
-      const pm=G.pieceMeshes[0][pi];
-      if(pm.getObjectById(hits[0].object.id)||(hits[0].object.parent&&pm.getObjectById(hits[0].object.parent.id))||pm.children.includes(hits[0].object)){
-        doMove(0,pi);G.phase='roll';updateUI();
-        if(checkWin(0)){endGame(0);return;}
-        setTimeout(()=>nextTurn(G.dice===6),300);
-        return;
-      }
-    }
+  function updateSpeakBtn() {
+    const txt = document.getElementById('tts-text').value.trim();
+    const ok = voiceReady && txt.length > 0;
+    document.getElementById('speakBtn').disabled = !ok;
+    document.getElementById('speak-tip').textContent = ok
+      ? 'Sẵn sàng! Nhấn Đọc văn bản để nghe.'
+      : !voiceReady ? 'Ghi âm giọng ở bước 1 hoặc chọn giọng hệ thống.'
+      : 'Nhập văn bản cần đọc ở bước 2.';
   }
-});
 
-// ============================================================
-// DICE
-// ============================================================
-document.getElementById('dice').addEventListener('click',()=>{
-  if(G.cur!==0||G.phase!=='roll'||G.won) return;
-  const de=document.getElementById('dice');
-  de.classList.add('rolling');de.style.pointerEvents='none';
-  let t=0;
-  const iv=setInterval(()=>{
-    de.textContent=DICE_FACES[~~(Math.random()*6)];
-    if(++t>10){
-      clearInterval(iv);de.classList.remove('rolling');de.style.pointerEvents='all';
-      const d=~~(Math.random()*6)+1;G.dice=d;G.rolled=true;
-      de.textContent=DICE_FACES[d-1];
-      const mv=getMoveable(0);
-      if(!mv.length){setMsg(`Tung ${d} - không có quân đi được`);setTimeout(()=>nextTurn(d===6),800);}
-      else{G.phase='move';setMsg(`Tung được ${d}! Nhấn vào quân để đi 👆`);}
-    }
-  },50);
-});
+  document.getElementById('tts-text').addEventListener('input', updateSpeakBtn);
 
-// ============================================================
-// ANIMATE
-// ============================================================
-let lastT=0;
-function animate(t=0){
-  requestAnimationFrame(animate);
-  const dt=(t-lastT)/1000;lastT=t;
-  updatePieceMeshPositions();
-  updateHighlights(dt);
-  // Gentle camera float
-  camera.position.y=14+Math.sin(t*0.0003)*0.3;
-  camera.lookAt(0,0,0);
-  renderer.render(scene,camera);
-}
+  async function toggleRecord() {
+    isRecording ? stopRecord() : await startRecord();
+  }
 
-// ============================================================
-// INIT
-// ============================================================
-buildBoard();
-initGame();
-animate();
+  async function startRecord() {
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch(e) { alert('Không thể truy cập micro. Hãy cấp quyền micro cho trang này.'); return; }
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = onRecordStop;
+    mediaRecorder.start();
+    isRecording = true; seconds = 0;
+    document.getElementById('recordBtn').classList.add('recording');
+    document.getElementById('record-label').textContent = 'Đang ghi âm... (bấm để dừng)';
+    setStatus('active', 'Đang ghi âm...');
+    timerInterval = setInterval(() => {
+      seconds++;
+      document.getElementById('timer').textContent =
+        `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+    }, 1000);
+    setupVisualizer(stream);
+  }
 
-window.restart=restart;
+  function stopRecord() {
+    if (!mediaRecorder || !isRecording) return;
+    mediaRecorder.stop();
+    stream.getTracks().forEach(t => t.stop());
+    isRecording = false;
+    clearInterval(timerInterval);
+    if (animFrame) cancelAnimationFrame(animFrame);
+    document.getElementById('recordBtn').classList.remove('recording');
+    document.getElementById('record-label').textContent = 'Ghi âm lại';
+  }
+
+  function onRecordStop() {
+    recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    const url = URL.createObjectURL(recordedBlob);
+    document.getElementById('rec-audio').src = url;
+    document.getElementById('rec-sample').style.display = '';
+    voiceReady = true;
+    setStatus('done', `Đã ghi ${seconds}s — sẵn sàng`);
+    updateSpeakBtn();
+    drawStaticWave();
+  }
+
+  function setupVisualizer(stream) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    drawLive();
+  }
+
+  function drawLive() {
+    const canvas = document.getElementById('waveform');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const buf = new Uint8Array(analyser.frequencyBinCount);
+    (function draw() {
+      animFrame = requestAnimationFrame(draw);
+      analyser.getByteTimeDomainData(buf);
+      ctx.clearRect(0,0,W,H);
+      ctx.strokeStyle = '#1D9E75'; ctx.lineWidth = 2; ctx.beginPath();
+      buf.forEach((v,i) => {
+        const y = (v/128)*(H/2);
+        i===0 ? ctx.moveTo(0,y) : ctx.lineTo(i*(W/buf.length),y);
+      });
+      ctx.stroke();
+    })();
+  }
+
+  function drawStaticWave() {
+    const canvas = document.getElementById('waveform');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle = '#5DCAA5'; ctx.lineWidth = 1.5; ctx.beginPath();
+    ctx.moveTo(0, H/2);
+    for (let x=0; x<W; x++) ctx.lineTo(x, H/2 + Math.sin(x*0.08)*8 + Math.sin(x*0.03)*10);
+    ctx.stroke();
+  }
+
+  function setSample(text) {
+    document.getElementById('tts-text').value = text;
+    updateSpeakBtn();
+  }
+
+  function updateSliders() {
+    const r = parseFloat(document.getElementById('rate-slider').value);
+    const p = parseFloat(document.getElementById('pitch-slider').value);
+    const v = parseFloat(document.getElementById('vol-slider').value);
+    document.getElementById('rate-val').textContent = r.toFixed(1)+'×';
+    document.getElementById('pitch-val').textContent = p.toFixed(1);
+    document.getElementById('vol-val').textContent = Math.round(v*100)+'%';
+  }
+
+  function getBestVoice(type) {
+    let f = voices;
+    if (type==='male') f = voices.filter(v=>/male|man/i.test(v.name));
+    else if (type==='female') f = voices.filter(v=>/female|woman/i.test(v.name));
+    else if (type==='child') f = voices.filter(v=>/child|kid/i.test(v.name));
+    if (!f.length) f = voices.filter(v=>v.lang.startsWith('vi'));
+    if (!f.length) f = voices.filter(v=>v.lang.startsWith('en'));
+    return f[0] || voices[0] || null;
+  }
+
+  function toggleSpeak() { isSpeaking ? stopSpeak() : speak(); }
+
+  function speak() {
+    const text = document.getElementById('tts-text').value.trim();
+    if (!text) return;
+    if (synth.speaking) synth.cancel();
+    const rate  = parseFloat(document.getElementById('rate-slider').value);
+    const pitch = parseFloat(document.getElementById('pitch-slider').value) * (selectedVoiceType==='child'?1.5:1);
+    const vol   = parseFloat(document.getElementById('vol-slider').value);
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = rate; utter.pitch = Math.min(2,pitch); utter.volume = vol; utter.lang = 'vi-VN';
+    const v = getBestVoice(selectedVoiceType);
+    if (v) utter.voice = v;
+    utter.onstart = () => {
+      isSpeaking = true;
+      document.getElementById('speakBtn').classList.add('speaking');
+      document.getElementById('play-icon').className = 'ti ti-player-pause';
+      document.getElementById('speak-label').textContent = 'Đang đọc...';
+      document.getElementById('stopBtn').disabled = false;
+      document.getElementById('playing-card').style.display = '';
+      document.getElementById('playing-preview').textContent = text.length>60 ? text.slice(0,60)+'…' : text;
+    };
+    utter.onend = utter.onerror = resetSpeakUI;
+    synth.speak(utter);
+  }
+
+  function stopSpeak() { synth.cancel(); resetSpeakUI(); }
+
+  function resetSpeakUI() {
+    isSpeaking = false;
+    document.getElementById('speakBtn').classList.remove('speaking');
+    document.getElementById('play-icon').className = 'ti ti-player-play';
+    document.getElementById('speak-label').textContent = 'Đọc văn bản';
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('playing-card').style.display = 'none';
+  }
 </script>
 </body>
 </html>
