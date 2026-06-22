@@ -13,46 +13,50 @@
   --accent-light:rgba(59,130,246,0.15);--success:#22c55e;--danger:#ef4444;
   --warn:#f59e0b;--r:10px;--rs:7px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
 header{background:var(--surface);border-bottom:0.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
 .logo{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 header h1{font-size:15px;font-weight:600;flex:1}
-.hbadge{font-size:11px;color:var(--muted);background:var(--surface2);border:0.5px solid var(--border);padding:3px 9px;border-radius:20px}
+.hbadge{font-size:11px;color:var(--muted);background:var(--surface2);border:0.5px solid var(--border);padding:3px 9px;border-radius:20px;transition:background .2s}
+.hbadge.live{background:rgba(239,68,68,.2);color:#f87171;border-color:#ef4444}
 
 .wrap{max-width:700px;margin:0 auto;padding:14px 12px 80px}
 
+/* VIDEO */
 .video-wrap{position:relative;background:#000;border-radius:var(--r);overflow:hidden;margin-bottom:12px;border:0.5px solid var(--border)}
 video{width:100%;display:block;max-height:55vw}
-.sub-overlay{position:absolute;bottom:8px;left:0;right:0;text-align:center;pointer-events:none;padding:0 12px}
+
+/* OCR crop overlay — draggable region indicator */
+.crop-overlay{position:absolute;left:0;right:0;bottom:0;pointer-events:none;border-top:2px dashed rgba(59,130,246,.6);background:rgba(59,130,246,.07);transition:height .15s}
+.crop-label{position:absolute;top:4px;left:8px;font-size:10px;color:rgba(59,130,246,.9);font-weight:600;letter-spacing:.05em}
+
+/* TTS overlay */
+.sub-overlay{position:absolute;bottom:8px;left:0;right:0;text-align:center;pointer-events:none;padding:0 12px;z-index:5}
 .sub-text{display:inline-block;background:rgba(0,0,0,0.78);color:#fff;font-size:clamp(13px,3.5vw,18px);line-height:1.5;padding:4px 10px;border-radius:5px;max-width:95%;word-wrap:break-word}
 .sub-text:empty{display:none}
 
-.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:28px 20px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color .15s,background .15s;margin-bottom:10px}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-light)}
-.upload-zone input{display:none}
+/* OCR debug canvas (hidden by default) */
+#debugCanvas{display:none;width:100%;border-radius:var(--rs);border:0.5px solid var(--border);margin-top:6px}
 
 .card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
-.ctitle{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.ctitle{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 
 .fstatus{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rs);background:var(--surface2);border:0.5px solid var(--border);margin-bottom:8px;font-size:13px}
 .fstatus .ficon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 .fstatus .ficon.vid{background:rgba(59,130,246,.2);color:var(--accent)}
 .fstatus .ficon.srt{background:rgba(34,197,94,.2);color:var(--success)}
-.fstatus .ficon.track{background:rgba(245,158,11,.2);color:var(--warn)}
 .fstatus .ficon.empty{background:var(--surface);color:var(--muted)}
 .fstatus .fname{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fstatus .fmeta{font-size:11px;color:var(--muted);margin-top:1px}
 .fstatus .fclr{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:16px;flex-shrink:0}
 .fstatus .fclr:hover{color:var(--danger)}
 
-/* Track selector */
-.track-selector{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--rs);background:rgba(245,158,11,.08);border:0.5px solid rgba(245,158,11,.3);margin-bottom:8px;font-size:13px}
-.track-selector select{flex:1;border:0.5px solid rgba(245,158,11,.4);background:var(--surface2);color:var(--text);border-radius:var(--rs);padding:5px 8px;font-size:12px;font-family:inherit;cursor:pointer}
-.track-selector select:focus{outline:none;border-color:var(--warn)}
-.track-label{font-size:12px;color:var(--warn);white-space:nowrap}
-.track-use-btn{background:rgba(245,158,11,.15);border:0.5px solid var(--warn);color:var(--warn);font-size:12px;padding:5px 10px;border-radius:var(--rs);cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:500;transition:background .12s}
-.track-use-btn:hover{background:rgba(245,158,11,.25)}
+/* MODE TABS */
+.mode-tabs{display:flex;gap:6px;margin-bottom:12px}
+.mtab{flex:1;padding:8px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--muted);font-size:12px;font-family:inherit;cursor:pointer;text-align:center;transition:all .15s;font-weight:500}
+.mtab.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.mtab:hover:not(.active){background:var(--surface2);color:var(--text)}
 
 .ctrl-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 button{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;transition:background .12s,transform .1s;font-weight:500;white-space:nowrap}
@@ -61,18 +65,27 @@ button:active{transform:scale(.97)}
 button:disabled{opacity:.35;cursor:not-allowed;transform:none}
 button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 button.pri:hover{background:#2563eb}
-button.danger{background:rgba(239,68,68,.15);border-color:var(--danger);color:var(--danger)}
 button.sm{padding:5px 10px;font-size:12px}
+button.warn-btn{background:rgba(245,158,11,.15);border-color:var(--warn);color:var(--warn)}
 
 select{border:0.5px solid var(--border2);border-radius:var(--rs);padding:7px 10px;font-size:13px;font-family:inherit;color:var(--text);background:var(--surface2);cursor:pointer;flex:1;min-width:0}
 select:focus{outline:none;border-color:var(--accent)}
 
 .slider-row{display:flex;align-items:center;gap:10px;padding:3px 0}
-.slabel{font-size:12px;color:var(--muted);min-width:70px}
+.slabel{font-size:12px;color:var(--muted);min-width:72px}
 input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
 .sval{font-size:12px;font-weight:600;min-width:36px;text-align:right;color:var(--text)}
 
-.sub-list{max-height:260px;overflow-y:auto;border:0.5px solid var(--border);border-radius:var(--rs)}
+/* OCR HISTORY LIST */
+.ocr-list{max-height:220px;overflow-y:auto;border:0.5px solid var(--border);border-radius:var(--rs)}
+.ocr-item{padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.ocr-item:last-child{border-bottom:none}
+.ocr-item.active{background:var(--accent-light);border-left:2px solid var(--accent)}
+.ocr-time{font-size:11px;color:var(--muted);min-width:42px;font-variant-numeric:tabular-nums;margin-top:2px;flex-shrink:0}
+.ocr-txt{line-height:1.5;flex:1}
+
+/* SUB LIST */
+.sub-list{max-height:220px;overflow-y:auto;border:0.5px solid var(--border);border-radius:var(--rs)}
 .sub-item{padding:9px 12px;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer;transition:background .12s;display:flex;gap:10px;align-items:flex-start}
 .sub-item:last-child{border-bottom:none}
 .sub-item:hover{background:var(--surface2)}
@@ -86,20 +99,23 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
 .badge.ok{background:rgba(34,197,94,.15);color:var(--success);border-color:var(--success)}
 .badge.info{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
 .badge.warn{background:rgba(245,158,11,.15);color:var(--warn);border-color:var(--warn)}
+.badge.danger{background:rgba(239,68,68,.15);color:var(--danger);border-color:var(--danger)}
 
-.info-box{background:var(--accent-light);border:0.5px solid rgba(59,130,246,.3);border-radius:var(--rs);padding:10px 13px;font-size:13px;line-height:1.6;margin-bottom:10px}
-.warn-box{background:rgba(245,158,11,.1);border:0.5px solid rgba(245,158,11,.4);border-radius:var(--rs);padding:10px 13px;font-size:13px;line-height:1.6;margin-bottom:10px}
-.success-box{background:rgba(34,197,94,.1);border:0.5px solid rgba(34,197,94,.4);border-radius:var(--rs);padding:10px 13px;font-size:13px;line-height:1.6;margin-bottom:10px}
+.info-box{background:var(--accent-light);border:0.5px solid rgba(59,130,246,.3);border-radius:var(--rs);padding:10px 13px;font-size:13px;line-height:1.6;margin-bottom:8px}
+.warn-box{background:rgba(245,158,11,.1);border:0.5px solid rgba(245,158,11,.4);border-radius:var(--rs);padding:10px 13px;font-size:13px;line-height:1.6;margin-bottom:8px}
 
 hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
 
+/* OCR progress bar */
+.ocr-progress{height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-top:8px}
+.ocr-bar{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .3s}
+
 .spin{animation:spin 1s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
+.pulse{animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-@media(max-width:480px){
-  video{max-height:52vw}
-  .sub-text{font-size:clamp(12px,3.8vw,16px)}
-}
+@media(max-width:480px){video{max-height:52vw}.sub-text{font-size:clamp(12px,3.8vw,16px)}}
 </style>
 </head>
 <body>
@@ -115,15 +131,18 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
   <!-- VIDEO PLAYER -->
   <div class="video-wrap" id="videoWrap" style="display:none">
     <video id="vid" controls playsinline crossorigin="anonymous"></video>
+    <div class="crop-overlay" id="cropOverlay" style="height:25%;display:none">
+      <span class="crop-label">OCR ZONE</span>
+    </div>
     <div class="sub-overlay"><span class="sub-text" id="subOverlay"></span></div>
   </div>
+  <canvas id="ocrCanvas" style="display:none"></canvas>
+  <canvas id="debugCanvas"></canvas>
 
   <!-- UPLOAD -->
-  <div class="card" id="uploadCard">
+  <div class="card">
     <div class="ctitle">📁 Tải file lên</div>
-
-    <!-- Video upload -->
-    <div class="fstatus" id="vidStatus">
+    <div class="fstatus">
       <div class="ficon empty" id="vidIcon">🎬</div>
       <div style="flex:1;min-width:0">
         <div class="fname" id="vidName">Chưa chọn video</div>
@@ -133,44 +152,91 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
       <button class="fclr" id="vidClr" onclick="clearVid()" style="display:none">✕</button>
     </div>
     <input type="file" id="vidInput" accept="video/*" onchange="loadVideo(this)">
+  </div>
 
-    <!-- Embedded track info (shown after video loads if tracks found) -->
-    <div id="trackZone" style="display:none">
-      <div class="track-selector" id="trackSelector">
-        <span class="track-label">🎞️ Track nhúng:</span>
-        <select id="trackSel"></select>
-        <button class="track-use-btn" onclick="useEmbeddedTrack()">Dùng track này</button>
+  <!-- MODE SELECT -->
+  <div class="card" id="modeCard" style="display:none">
+    <div class="ctitle">⚙️ Chế độ lấy phụ đề</div>
+    <div class="mode-tabs">
+      <button class="mtab active" id="tab-ocr" onclick="setMode('ocr')">👁️ OCR màn hình</button>
+      <button class="mtab" id="tab-track" onclick="setMode('track')" id="tabTrack">🎞️ Track nhúng</button>
+      <button class="mtab" id="tab-srt" onclick="setMode('srt')">📄 File SRT</button>
+    </div>
+
+    <!-- OCR MODE -->
+    <div id="pane-ocr">
+      <div class="info-box">
+        👁️ OCR đọc chữ phụ đề trực tiếp trên khung hình — không cần file SRT hay track nhúng.<br>
+        Hỗ trợ nhiều ngôn ngữ. Tesseract.js sẽ tải lần đầu (~10MB).
       </div>
-      <div class="success-box" id="trackActiveBox" style="display:none">
-        ✅ Đang dùng track nhúng: <strong id="trackActiveName"></strong> — <span id="trackActiveCount"></span> dòng phụ đề
+
+      <div class="slider-row" style="margin-bottom:8px">
+        <span class="slabel">Vùng OCR</span>
+        <input type="range" min="10" max="50" step="5" value="25" id="cropSlider"
+          oninput="updateCropZone(this.value)">
+        <span class="sval" id="cropVal">25%</span>
+      </div>
+      <div class="slider-row" style="margin-bottom:10px">
+        <span class="slabel">Ngôn ngữ</span>
+        <select id="ocrLang">
+          <option value="eng">Tiếng Anh (eng)</option>
+          <option value="vie">Tiếng Việt (vie)</option>
+          <option value="chi_sim">Tiếng Trung giản thể</option>
+          <option value="chi_tra">Tiếng Trung phồn thể</option>
+          <option value="jpn">Tiếng Nhật</option>
+          <option value="kor">Tiếng Hàn</option>
+          <option value="eng+vie">Anh + Việt</option>
+          <option value="eng+chi_sim">Anh + Trung</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <button id="btnInitOCR" class="pri" onclick="initOCR()" disabled>⬇️ Tải Tesseract</button>
+        <button id="btnTestOCR" onclick="testOCR()" disabled class="sm">🔍 Test 1 frame</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer">
+          <input type="checkbox" id="showDebug" onchange="toggleDebug(this.checked)"> Xem frame OCR
+        </label>
+      </div>
+      <div class="ocr-progress"><div class="ocr-bar" id="ocrBar"></div></div>
+      <div class="status" id="ocrStatus">Nhấn "Tải Tesseract" để bắt đầu</div>
+    </div>
+
+    <!-- TRACK MODE -->
+    <div id="pane-track" style="display:none">
+      <div id="trackInfo" class="info-box">🎞️ Đang kiểm tra track nhúng trong video…</div>
+      <div id="trackSelector" style="display:none">
+        <div class="slider-row" style="margin-bottom:8px">
+          <span class="slabel">Track</span>
+          <select id="trackSel" onchange="useEmbeddedTrack()"></select>
+        </div>
       </div>
     </div>
 
-    <!-- SRT source status -->
-    <div id="srtZone">
-      <div class="fstatus" id="srtStatus">
+    <!-- SRT MODE -->
+    <div id="pane-srt" style="display:none">
+      <div class="fstatus">
         <div class="ficon empty" id="srtIcon">📝</div>
         <div style="flex:1;min-width:0">
           <div class="fname" id="srtName">Chưa chọn phụ đề</div>
-          <div class="fmeta" id="srtMeta">File .SRT (fallback nếu không có track nhúng)</div>
+          <div class="fmeta" id="srtMeta">File .SRT</div>
         </div>
         <button class="sm" onclick="document.getElementById('srtInput').click()">Chọn</button>
         <button class="fclr" id="srtClr" onclick="clearSrt()" style="display:none">✕</button>
       </div>
+      <input type="file" id="srtInput" accept=".srt,.txt" onchange="loadSrt(this)">
     </div>
-    <input type="file" id="srtInput" accept=".srt,.txt" onchange="loadSrt(this)">
 
-    <div class="warn-box" id="noVoiceWarn" style="display:none;margin-top:8px">
-      ⚠️ Không tìm thấy giọng tiếng Việt. Để có giọng tốt hơn:<br>
-      <strong>Windows:</strong> Cài đặt → Thời gian &amp; Ngôn ngữ → Giọng nói → Thêm → <em>vi-VN-HoaiMyNeural</em>
+    <div class="warn-box" id="noVoiceWarn" style="display:none;margin-top:4px">
+      ⚠️ Không tìm thấy giọng tiếng Việt.<br>
+      <strong>Windows:</strong> Cài đặt → Ngôn ngữ → Giọng nói → Thêm → <em>vi-VN-HoaiMyNeural</em>
     </div>
   </div>
 
   <!-- VOICE SETTINGS -->
-  <div class="card" id="voiceCard">
+  <div class="card">
     <div class="ctitle">🔊 Giọng đọc &amp; cài đặt</div>
     <div class="slider-row" style="margin-bottom:8px">
-      <span class="slabel">Giọng đọc</span>
+      <span class="slabel">Giọng</span>
       <select id="voiceSel"></select>
     </div>
     <div class="slider-row">
@@ -186,26 +252,26 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
       <span class="sval" id="pitchVal">1.0</span>
     </div>
     <div class="slider-row">
-      <span class="slabel">Âm lượng TTS</span>
+      <span class="slabel">Vol TTS</span>
       <input type="range" min="0" max="1" step=".05" value="1" id="volSlider"
         oninput="document.getElementById('volVal').textContent=Math.round(this.value*100)+'%'">
       <span class="sval" id="volVal">100%</span>
     </div>
     <hr>
     <div class="slider-row">
-      <span class="slabel">Âm lượng phim</span>
+      <span class="slabel">Vol phim</span>
       <input type="range" min="0" max="1" step=".05" value="0.15" id="vidVolSlider"
         oninput="setVidVol(this.value)">
       <span class="sval" id="vidVolVal">15%</span>
     </div>
     <div style="font-size:12px;color:var(--muted);margin-top:6px">
-      💡 Giảm âm lượng phim xuống thấp để nghe thuyết minh rõ hơn
+      💡 Giảm âm lượng phim để nghe thuyết minh rõ hơn
     </div>
   </div>
 
   <!-- CONTROLS -->
-  <div class="card" id="ctrlCard">
-    <div class="ctitle">▶️ Điều khiển thuyết minh</div>
+  <div class="card">
+    <div class="ctitle">▶️ Điều khiển</div>
     <div class="ctrl-row">
       <button class="pri" id="btnStart" onclick="startDub()" disabled>▶ Bắt đầu</button>
       <button id="btnStop" onclick="stopDub()" disabled>⏹ Dừng</button>
@@ -214,26 +280,45 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
     <div class="status" id="statusTxt">📂 Chưa tải file</div>
   </div>
 
-  <!-- SUBTITLE LIST -->
+  <!-- OCR LIVE LOG -->
+  <div class="card" id="ocrLogCard" style="display:none">
+    <div class="ctitle">
+      👁️ OCR log thời gian thực
+      <span class="badge info" id="ocrCountBadge">0 lượt</span>
+      <span class="badge" id="ocrLangBadge"></span>
+    </div>
+    <div class="ocr-list" id="ocrList"></div>
+  </div>
+
+  <!-- SRT / TRACK SUB LIST -->
   <div class="card" id="subCard" style="display:none">
     <div class="ctitle">
       📋 Danh sách phụ đề
       <span class="badge info" id="subCountBadge">0 dòng</span>
-      <span class="badge warn" id="subSourceBadge" style="display:none"></span>
     </div>
     <div class="sub-list" id="subList"></div>
   </div>
 
 </div>
 
+<!-- Tesseract CDN -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <script>
 // ===== STATE =====
+let mode='ocr'; // 'ocr' | 'track' | 'srt'
 let subs=[], voices=[], isDubbing=false, isMuted=false;
 let currentSubIdx=-1, checkTimer=null;
-let subsSource='none'; // 'track' | 'srt' | 'none'
+let ocrWorker=null, ocrReady=false, ocrRunning=false;
+let ocrInterval=null, ocrLog=[], ocrCount=0;
+let lastSpokenText='', lastSpokenTime=-999;
 let videoObjectURL=null;
 
 const vid=document.getElementById('vid');
+const ocrCanvas=document.getElementById('ocrCanvas');
+const ctx=ocrCanvas.getContext('2d');
+const debugCanvas=document.getElementById('debugCanvas');
+const dctx=debugCanvas.getContext('2d');
 
 // ===== VOICES =====
 function loadVoices(){
@@ -270,113 +355,36 @@ function loadVideo(input){
   document.getElementById('vidName').textContent=f.name;
   document.getElementById('vidMeta').textContent=formatSize(f.size);
   document.getElementById('vidClr').style.display='';
-
-  // Reset sub state
-  subs=[];subsSource='none';
-  document.getElementById('trackZone').style.display='none';
-  document.getElementById('trackActiveBox').style.display='none';
-  document.getElementById('subCard').style.display='none';
-
-  // Detect embedded tracks after metadata loads
-  vid.addEventListener('loadedmetadata', onVideoMetadata, {once:true});
+  document.getElementById('modeCard').style.display='block';
+  document.getElementById('btnInitOCR').disabled=false;
+  subs=[];
+  vid.addEventListener('loadedmetadata',onVideoMeta,{once:true});
   checkReady();
 }
 
-function onVideoMetadata(){
-  const tracks=Array.from(vid.textTracks);
-  const subtitleTracks=tracks.filter(t=>
-    t.kind==='subtitles'||t.kind==='captions'||t.kind==='metadata'
+function onVideoMeta(){
+  const tracks=Array.from(vid.textTracks).filter(t=>
+    t.kind==='subtitles'||t.kind==='captions'
   );
-
-  if(subtitleTracks.length>0){
-    // Show track zone
-    document.getElementById('trackZone').style.display='block';
+  const trackPane=document.getElementById('trackInfo');
+  if(tracks.length){
+    trackPane.textContent='✅ Tìm thấy '+tracks.length+' track nhúng.';
+    trackPane.className='info-box';
     const sel=document.getElementById('trackSel');
     sel.innerHTML='';
-    subtitleTracks.forEach((t,i)=>{
+    tracks.forEach((t,i)=>{
       const o=document.createElement('option');
       o.value=i;
-      const lang=t.language?` [${t.language}]`:'';
-      const kind=t.kind?` (${t.kind})`:'';
-      o.textContent=(t.label||`Track ${i+1}`)+lang+kind;
+      o.textContent=(t.label||('Track '+(i+1)))+(t.language?' ['+t.language+']':'');
       sel.appendChild(o);
     });
-
-    // Auto-use first track (priority: track over SRT)
-    useEmbeddedTrack();
-
-    // Update SRT label to say "fallback"
-    document.getElementById('srtMeta').textContent='File .SRT (ghi đè track nhúng nếu chọn)';
+    document.getElementById('trackSelector').style.display='block';
+    // switch to track tab automatically only if in track mode
+    if(mode==='track') useEmbeddedTrack();
+  } else {
+    trackPane.textContent='ℹ️ Video không có track nhúng. Dùng OCR hoặc SRT.';
+    trackPane.className='warn-box';
   }
-}
-
-function useEmbeddedTrack(){
-  const tracks=Array.from(vid.textTracks).filter(t=>
-    t.kind==='subtitles'||t.kind==='captions'||t.kind==='metadata'
-  );
-  const idx=parseInt(document.getElementById('trackSel').value)||0;
-  const track=tracks[idx];
-  if(!track) return;
-
-  // Enable track to load cues
-  track.mode='hidden';
-
-  // Wait for cues to load
-  function tryParseCues(){
-    if(track.cues&&track.cues.length>0){
-      parseCuesFromTrack(track);
-    } else {
-      // Retry after short delay (browser may not have loaded cues yet)
-      setTimeout(tryParseCues, 200);
-    }
-  }
-
-  // Also listen to cuechange as secondary method
-  track.addEventListener('cuechange', function onCue(){
-    if(track.cues&&track.cues.length>0){
-      track.removeEventListener('cuechange',onCue);
-      parseCuesFromTrack(track);
-    }
-  });
-
-  // Seek slightly to trigger cue loading
-  const savedTime=vid.currentTime;
-  vid.currentTime=0.001;
-  setTimeout(()=>{
-    vid.currentTime=savedTime;
-    tryParseCues();
-  },300);
-}
-
-function parseCuesFromTrack(track){
-  const cues=Array.from(track.cues||[]);
-  if(!cues.length) return;
-
-  subs=cues.map(c=>{
-    // Strip VTT tags from text
-    const text=(c.text||'').replace(/<[^>]+>/g,'').replace(/\n/g,' ').trim();
-    return {start:c.startTime,end:c.endTime,text,duration:c.endTime-c.startTime};
-  }).filter(s=>s.text).sort((a,b)=>a.start-b.start);
-
-  subsSource='track';
-  const trackName=track.label||track.language||'Track nhúng';
-  document.getElementById('trackActiveName').textContent=trackName;
-  document.getElementById('trackActiveCount').textContent=subs.length;
-  document.getElementById('trackActiveBox').style.display='block';
-  document.getElementById('trackSelector').style.display=
-    Array.from(vid.textTracks).filter(t=>t.kind==='subtitles'||t.kind==='captions'||t.kind==='metadata').length>1?'flex':'none';
-
-  // Update SRT zone to show it's optional
-  if(!document.getElementById('srtClr').style.display||document.getElementById('srtClr').style.display==='none'){
-    document.getElementById('srtIcon').className='ficon empty';
-    document.getElementById('srtName').textContent='Tùy chọn: tải SRT để ghi đè track';
-    document.getElementById('srtMeta').textContent='File .SRT sẽ được ưu tiên nếu chọn';
-  }
-
-  renderSubList('track');
-  document.getElementById('subCard').style.display='block';
-  checkReady();
-  setStatus('🎞️ Đã đọc '+subs.length+' dòng từ track nhúng — sẵn sàng thuyết minh');
 }
 
 function clearVid(){
@@ -388,10 +396,10 @@ function clearVid(){
   document.getElementById('vidMeta').textContent='MP4, MKV, AVI, MOV…';
   document.getElementById('vidClr').style.display='none';
   document.getElementById('vidInput').value='';
-  document.getElementById('trackZone').style.display='none';
-  document.getElementById('trackActiveBox').style.display='none';
-  subs=[];subsSource='none';
-  stopDub();checkReady();
+  document.getElementById('modeCard').style.display='none';
+  document.getElementById('subCard').style.display='none';
+  document.getElementById('ocrLogCard').style.display='none';
+  subs=[];stopDub();checkReady();
 }
 
 function setVidVol(v){
@@ -399,188 +407,335 @@ function setVidVol(v){
   document.getElementById('vidVolVal').textContent=Math.round(v*100)+'%';
 }
 
-// ===== SRT PARSER =====
-function loadSrt(input){
-  const f=input.files[0];if(!f) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const parsed=parseSRT(e.target.result);
-    if(!parsed.length){
-      setStatus('⚠️ Không tìm thấy phụ đề trong file SRT');return;
-    }
-    // SRT overrides track
-    subs=parsed;
-    subsSource='srt';
-    document.getElementById('srtIcon').className='ficon srt';
-    document.getElementById('srtName').textContent=f.name;
-    document.getElementById('srtMeta').textContent=subs.length+' dòng phụ đề';
-    document.getElementById('srtClr').style.display='';
-    // Hide track active box since SRT takes over
-    document.getElementById('trackActiveBox').style.display='none';
-    renderSubList('srt');
-    document.getElementById('subCard').style.display='block';
-    checkReady();
-    setStatus('📄 Đã tải SRT: '+subs.length+' dòng (ghi đè track nhúng)');
-  };
-  reader.readAsText(f,'UTF-8');
+// ===== MODE TABS =====
+function setMode(m){
+  mode=m;
+  ['ocr','track','srt'].forEach(x=>{
+    document.getElementById('tab-'+x).className='mtab'+(x===m?' active':'');
+    document.getElementById('pane-'+x).style.display=x===m?'block':'none';
+  });
+  subs=[];
+  document.getElementById('subCard').style.display='none';
+  document.getElementById('ocrLogCard').style.display=m==='ocr'?'block':'none';
+  document.getElementById('cropOverlay').style.display=m==='ocr'?'block':'none';
+  stopDub();
+  if(m==='track') useEmbeddedTrack();
+  checkReady();
 }
 
-function clearSrt(){
-  document.getElementById('srtIcon').className='ficon empty';
-  document.getElementById('srtName').textContent='Chưa chọn phụ đề';
-  document.getElementById('srtMeta').textContent='File .SRT (fallback nếu không có track nhúng)';
-  document.getElementById('srtClr').style.display='none';
-  document.getElementById('srtInput').value='';
+// ===== OCR ZONE =====
+function updateCropZone(v){
+  document.getElementById('cropVal').textContent=v+'%';
+  document.getElementById('cropOverlay').style.height=v+'%';
+}
 
-  // Fall back to embedded track if available
-  const tracks=Array.from(vid.textTracks).filter(t=>
-    t.kind==='subtitles'||t.kind==='captions'||t.kind==='metadata'
-  );
-  if(tracks.length>0){
-    useEmbeddedTrack();
-    setStatus('↩️ Đã bỏ SRT — quay lại dùng track nhúng');
-  } else {
-    subs=[];subsSource='none';
-    document.getElementById('subCard').style.display='none';
-    document.getElementById('subList').innerHTML='';
-    stopDub();checkReady();
+function toggleDebug(on){
+  document.getElementById('debugCanvas').style.display=on?'block':'none';
+}
+
+// ===== TESSERACT =====
+async function initOCR(){
+  const btn=document.getElementById('btnInitOCR');
+  const bar=document.getElementById('ocrBar');
+  const lang=document.getElementById('ocrLang').value;
+  btn.disabled=true;
+  btn.textContent='⏳ Đang tải…';
+  setOcrStatus('<span class="spin">⚙️</span> Đang tải Tesseract + model ngôn ngữ…');
+
+  try{
+    if(ocrWorker){await ocrWorker.terminate();ocrWorker=null;}
+    ocrWorker=await Tesseract.createWorker(lang,1,{
+      logger:m=>{
+        if(m.status==='loading tesseract core'){bar.style.width='10%'}
+        else if(m.status==='loading language traineddata'){
+          const pct=Math.round((m.progress||0)*60)+20;
+          bar.style.width=pct+'%';
+          setOcrStatus('📦 Tải model '+lang+'… '+Math.round((m.progress||0)*100)+'%');
+        }
+        else if(m.status==='initializing api'){bar.style.width='90%'}
+      }
+    });
+    bar.style.width='100%';
+    ocrReady=true;
+    btn.textContent='✅ Sẵn sàng';
+    btn.disabled=false;
+    btn.className='sm';
+    document.getElementById('btnTestOCR').disabled=false;
+    document.getElementById('ocrLangBadge').textContent=lang;
+    document.getElementById('ocrLangBadge').style.display='';
+    setOcrStatus('✅ Tesseract sẵn sàng — ngôn ngữ: '+lang);
+    checkReady();
+  }catch(e){
+    btn.textContent='❌ Lỗi — thử lại';
+    btn.disabled=false;
+    setOcrStatus('❌ Lỗi: '+e.message);
   }
 }
 
+function setOcrStatus(t){
+  document.getElementById('ocrStatus').innerHTML=t;
+}
+
+// ===== CAPTURE + OCR ONE FRAME =====
+async function captureAndOCR(){
+  if(!ocrReady||ocrRunning||vid.paused||vid.ended) return null;
+  ocrRunning=true;
+
+  const vw=vid.videoWidth, vh=vid.videoHeight;
+  if(!vw||!vh){ocrRunning=false;return null;}
+
+  const cropPct=parseInt(document.getElementById('cropSlider').value)/100;
+  const cropY=Math.floor(vh*(1-cropPct));
+  const cropH=Math.floor(vh*cropPct);
+
+  ocrCanvas.width=vw;
+  ocrCanvas.height=cropH;
+  ctx.drawImage(vid,0,cropY,vw,cropH,0,0,vw,cropH);
+
+  // Show debug
+  if(document.getElementById('showDebug').checked){
+    debugCanvas.width=vw;debugCanvas.height=cropH;
+    dctx.drawImage(ocrCanvas,0,0);
+  }
+
+  try{
+    const {data}=await ocrWorker.recognize(ocrCanvas);
+    const raw=data.text||'';
+    // Clean: strip noise, keep printable lines
+    const text=raw.split('\n')
+      .map(l=>l.trim())
+      .filter(l=>l.length>1 && !/^[\W\d\s]{1,2}$/.test(l))
+      .join(' ')
+      .replace(/\s{2,}/g,' ')
+      .trim();
+    ocrRunning=false;
+    return {text, confidence:data.confidence};
+  }catch(e){
+    ocrRunning=false;return null;
+  }
+}
+
+async function testOCR(){
+  setOcrStatus('<span class="spin">🔍</span> Đang OCR frame hiện tại…');
+  const result=await captureAndOCR();
+  if(!result) return setOcrStatus('⚠️ Không nhận diện được — video đang dừng?');
+  setOcrStatus('🔍 Test: "'+result.text+'" ('+Math.round(result.confidence)+'% tin cậy)');
+}
+
+// ===== TRACK MODE =====
+function useEmbeddedTrack(){
+  const tracks=Array.from(vid.textTracks).filter(t=>t.kind==='subtitles'||t.kind==='captions');
+  const idx=parseInt(document.getElementById('trackSel').value)||0;
+  const track=tracks[idx];
+  if(!track){
+    document.getElementById('trackInfo').textContent='ℹ️ Không có track nhúng.';
+    return;
+  }
+  track.mode='hidden';
+  function tryParse(){
+    if(track.cues&&track.cues.length>0){
+      subs=Array.from(track.cues).map(c=>({
+        start:c.startTime,end:c.endTime,
+        text:(c.text||'').replace(/<[^>]+>/g,'').replace(/\n/g,' ').trim(),
+        duration:c.endTime-c.startTime
+      })).filter(s=>s.text).sort((a,b)=>a.start-b.start);
+      renderSubList();
+      document.getElementById('subCard').style.display='block';
+      checkReady();
+      setStatus('🎞️ Track: '+subs.length+' dòng sẵn sàng');
+    } else {
+      setTimeout(tryParse,200);
+    }
+  }
+  vid.currentTime=0.001;setTimeout(()=>{vid.currentTime=0;tryParse();},300);
+}
+
+// ===== SRT MODE =====
+function loadSrt(input){
+  const f=input.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    subs=parseSRT(e.target.result);
+    if(!subs.length){setStatus('⚠️ Không tìm thấy phụ đề trong SRT');return;}
+    document.getElementById('srtIcon').className='ficon srt';
+    document.getElementById('srtName').textContent=f.name;
+    document.getElementById('srtMeta').textContent=subs.length+' dòng';
+    document.getElementById('srtClr').style.display='';
+    renderSubList();
+    document.getElementById('subCard').style.display='block';
+    checkReady();
+  };
+  reader.readAsText(f,'UTF-8');
+}
+function clearSrt(){
+  subs=[];
+  document.getElementById('srtIcon').className='ficon empty';
+  document.getElementById('srtName').textContent='Chưa chọn phụ đề';
+  document.getElementById('srtMeta').textContent='File .SRT';
+  document.getElementById('srtClr').style.display='none';
+  document.getElementById('srtInput').value='';
+  document.getElementById('subCard').style.display='none';
+  stopDub();checkReady();
+}
 function parseSRT(txt){
   const blocks=txt.trim().replace(/\r\n/g,'\n').replace(/\r/g,'\n').split(/\n\n+/);
   const result=[];
   blocks.forEach(b=>{
     const lines=b.trim().split('\n');
-    if(lines.length<2) return;
     let tsLine='',textLines=[];
-    for(let i=0;i<lines.length;i++){
-      if(lines[i].includes('-->')){tsLine=lines[i];textLines=lines.slice(i+1);break}
-    }
-    if(!tsLine) return;
+    for(let i=0;i<lines.length;i++){if(lines[i].includes('-->')){tsLine=lines[i];textLines=lines.slice(i+1);break}}
+    if(!tsLine)return;
     const m=tsLine.match(/(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)/);
-    if(!m) return;
+    if(!m)return;
     const start=(+m[1]*3600)+(+m[2]*60)+(+m[3])+(+m[4]/1000);
     const end=(+m[5]*3600)+(+m[6]*60)+(+m[7])+(+m[8]/1000);
     const text=textLines.join(' ').replace(/<[^>]+>/g,'').trim();
-    if(text) result.push({start,end,text,duration:end-start});
+    if(text)result.push({start,end,text,duration:end-start});
   });
   return result.sort((a,b)=>a.start-b.start);
 }
 
-function fmtTime(s){
-  const m=Math.floor(s/60);const ss=Math.floor(s%60);
-  return m+':'+(ss<10?'0':'')+ss;
-}
-function formatSize(b){
-  if(b>1024*1024) return (b/1024/1024).toFixed(1)+' MB';
-  return (b/1024).toFixed(0)+' KB';
-}
-
-// ===== SUBTITLE LIST =====
-function renderSubList(source){
+// ===== SUB LIST =====
+function renderSubList(){
   const el=document.getElementById('subList');
   document.getElementById('subCountBadge').textContent=subs.length+' dòng';
-  const badge=document.getElementById('subSourceBadge');
-  if(source==='track'){badge.textContent='Track nhúng';badge.style.display='';}
-  else if(source==='srt'){badge.textContent='File SRT';badge.style.display='';}
-  else{badge.style.display='none';}
   el.innerHTML=subs.map((s,i)=>`
     <div class="sub-item" id="si${i}" onclick="jumpTo(${i})">
       <span class="sub-time">${fmtTime(s.start)}</span>
       <span class="sub-txt">${s.text}</span>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
-
 function highlightSub(i){
   document.querySelectorAll('.sub-item').forEach((el,j)=>{
     el.className='sub-item'+(j<i?' done':j===i?' active':'');
   });
   const el=document.getElementById('si'+i);
-  if(el) el.scrollIntoView({block:'nearest',behavior:'smooth'});
+  if(el)el.scrollIntoView({block:'nearest',behavior:'smooth'});
   document.getElementById('subOverlay').textContent=i>=0&&i<subs.length?subs[i].text:'';
 }
-
-// ===== JUMP TO =====
 function jumpTo(i){
-  if(i<0||i>=subs.length) return;
+  if(i<0||i>=subs.length)return;
   vid.currentTime=subs[i].start;
-  if(!isDubbing) return;
+  if(!isDubbing)return;
   window.speechSynthesis.cancel();
   currentSubIdx=i-1;
 }
 
-// ===== DUBBING =====
+// ===== READY CHECK =====
 function checkReady(){
-  const ready=vid.src&&subs.length>0;
+  let ready=false;
+  if(mode==='ocr') ready=!!(vid.src&&ocrReady);
+  else ready=!!(vid.src&&subs.length>0);
   document.getElementById('btnStart').disabled=!ready;
   document.getElementById('hbadge').textContent=
     !vid.src?'Chưa có video':
-    !subs.length?'Chưa có phụ đề':'Sẵn sàng';
+    mode==='ocr'&&!ocrReady?'Cần tải Tesseract':
+    !ready?'Chưa có phụ đề':'Sẵn sàng';
   if(ready&&!isDubbing)
-    setStatus('✅ Sẵn sàng — nhấn Bắt đầu để thuyết minh');
-  else if(!vid.src||!subs.length)
-    setStatus('📂 Tải video'+(vid.src?'',' và file SRT để bắt đầu'));
+    setStatus('✅ Sẵn sàng — nhấn Bắt đầu');
 }
 
+// ===== DUBBING =====
 function startDub(){
-  if(!vid.src||!subs.length) return;
   isDubbing=true;
   currentSubIdx=-1;
+  lastSpokenText='';lastSpokenTime=-999;
   document.getElementById('btnStart').disabled=true;
   document.getElementById('btnStop').disabled=false;
+  document.getElementById('hbadge').className='hbadge live';
   vid.volume=parseFloat(document.getElementById('vidVolSlider').value);
   vid.play();
-  startSyncLoop();
   setStatus('🎙️ Đang thuyết minh…');
+
+  if(mode==='ocr'){
+    startOCRLoop();
+  } else {
+    startSyncLoop();
+  }
 }
 
 function stopDub(){
   isDubbing=false;
   window.speechSynthesis.cancel();
   clearInterval(checkTimer);
+  clearInterval(ocrInterval);
   currentSubIdx=-1;
-  document.getElementById('btnStart').disabled=!(vid.src&&subs.length);
+  document.getElementById('btnStart').disabled=!(mode==='ocr'?ocrReady&&vid.src:vid.src&&subs.length);
   document.getElementById('btnStop').disabled=true;
   document.getElementById('subOverlay').textContent='';
+  document.getElementById('hbadge').className='hbadge';
   document.querySelectorAll('.sub-item').forEach(el=>el.className='sub-item');
   setStatus('⏹ Đã dừng');
-  document.getElementById('hbadge').textContent='Đã dừng';
 }
 
+// ===== OCR LOOP =====
+function startOCRLoop(){
+  document.getElementById('ocrLogCard').style.display='block';
+  ocrInterval=setInterval(async()=>{
+    if(!isDubbing){clearInterval(ocrInterval);return}
+    if(vid.paused||vid.ended){if(vid.ended)finishDub();return}
+    const result=await captureAndOCR();
+    if(!result||!result.text) return;
+    const text=result.text;
+    const now=vid.currentTime;
+    // Deduplicate: don't re-read same text within 3s
+    const changed=text!==lastSpokenText;
+    const cooldown=now-lastSpokenTime>2.5;
+    if(changed&&cooldown&&text.length>1){
+      lastSpokenText=text;
+      lastSpokenTime=now;
+      // Add to log
+      ocrCount++;
+      addOcrLog(now, text, result.confidence);
+      document.getElementById('subOverlay').textContent=text;
+      setStatus('🎙️ OCR #'+ocrCount+': '+text.substring(0,35)+(text.length>35?'…':''));
+      document.getElementById('hbadge').textContent='OCR #'+ocrCount;
+      speakText(text);
+    }
+  }, 600);
+}
+
+function addOcrLog(t, text, conf){
+  ocrLog.unshift({t,text,conf});
+  if(ocrLog.length>100) ocrLog.pop();
+  document.getElementById('ocrCountBadge').textContent=ocrCount+' lượt';
+  const el=document.getElementById('ocrList');
+  el.innerHTML=ocrLog.map((l,i)=>`
+    <div class="ocr-item${i===0?' active':''}">
+      <span class="ocr-time">${fmtTime(l.t)}</span>
+      <span class="ocr-txt">${l.text} <span style="font-size:10px;color:var(--muted)">${Math.round(l.conf)}%</span></span>
+    </div>`).join('');
+}
+
+// ===== SRT/TRACK SYNC LOOP =====
 function startSyncLoop(){
   clearInterval(checkTimer);
   checkTimer=setInterval(()=>{
     if(!isDubbing){clearInterval(checkTimer);return}
-    if(vid.paused||vid.ended){
-      if(vid.ended) finishDub();
-      return;
-    }
+    if(vid.paused||vid.ended){if(vid.ended)finishDub();return}
     const t=vid.currentTime;
     const idx=subs.findIndex(s=>t>=s.start&&t<s.end);
     if(idx!==-1&&idx!==currentSubIdx){
       currentSubIdx=idx;
       highlightSub(idx);
-      speakSub(subs[idx]);
+      speakText(subs[idx].text);
       setStatus('🎙️ Câu '+(idx+1)+'/'+subs.length+': '+subs[idx].text.substring(0,30)+(subs[idx].text.length>30?'…':''));
       document.getElementById('hbadge').textContent='Câu '+(idx+1)+'/'+subs.length;
     }
     if(idx===-1){
-      const nextSub=subs.find(s=>s.start>t);
-      if(!nextSub){finishDub();return}
-      const prevSub=subs.slice().reverse().find(s=>s.end<=t);
-      if(!prevSub||prevSub.end<=t) document.getElementById('subOverlay').textContent='';
+      const next=subs.find(s=>s.start>t);
+      if(!next){finishDub();return}
+      document.getElementById('subOverlay').textContent='';
     }
   },100);
 }
 
-function speakSub(sub){
-  if(isMuted) return;
+function speakText(text){
+  if(isMuted)return;
   window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(sub.text);
+  const u=new SpeechSynthesisUtterance(text);
   const sv=document.getElementById('voiceSel').value;
-  const v=voices.find(x=>x.name===sv);if(v) u.voice=v;
+  const v=voices.find(x=>x.name===sv);if(v)u.voice=v;
   u.rate=parseFloat(document.getElementById('rateSlider').value);
   u.pitch=parseFloat(document.getElementById('pitchSlider').value);
   u.volume=parseFloat(document.getElementById('volSlider').value);
@@ -589,15 +744,15 @@ function speakSub(sub){
 
 function finishDub(){
   isDubbing=false;
-  clearInterval(checkTimer);
+  clearInterval(checkTimer);clearInterval(ocrInterval);
   window.speechSynthesis.cancel();
   document.getElementById('btnStart').disabled=false;
   document.getElementById('btnStop').disabled=true;
   document.getElementById('subOverlay').textContent='';
-  highlightSub(-1);
-  document.querySelectorAll('.sub-item').forEach(el=>el.className='sub-item done');
-  setStatus('✅ Thuyết minh xong!');
+  document.getElementById('hbadge').className='hbadge';
   document.getElementById('hbadge').textContent='Xong';
+  if(mode!=='ocr') document.querySelectorAll('.sub-item').forEach(el=>el.className='sub-item done');
+  setStatus('✅ Thuyết minh xong!');
 }
 
 function toggleMute(){
@@ -608,11 +763,13 @@ function toggleMute(){
 }
 
 function setStatus(t){document.getElementById('statusTxt').textContent=t}
+function fmtTime(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return m+':'+(ss<10?'0':'')+ss}
+function formatSize(b){return b>1048576?(b/1048576).toFixed(1)+' MB':(b/1024).toFixed(0)+' KB'}
 
-vid.addEventListener('pause',()=>{if(isDubbing) window.speechSynthesis.pause()});
-vid.addEventListener('play',()=>{if(isDubbing) window.speechSynthesis.resume()});
-vid.addEventListener('seeked',()=>{if(!isDubbing) return;window.speechSynthesis.cancel();currentSubIdx=-1;});
-vid.addEventListener('ended',()=>{if(isDubbing) finishDub()});
+vid.addEventListener('pause',()=>{if(isDubbing)window.speechSynthesis.pause()});
+vid.addEventListener('play',()=>{if(isDubbing)window.speechSynthesis.resume()});
+vid.addEventListener('seeked',()=>{if(!isDubbing)return;window.speechSynthesis.cancel();currentSubIdx=-1;lastSpokenText='';lastSpokenTime=-999;});
+vid.addEventListener('ended',()=>{if(isDubbing)finishDub()});
 </script>
 </body>
 </html>
