@@ -1,773 +1,582 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Phỏm 2 Người - Bàn Chơi</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RemoteDesk — Điều Khiển Máy Từ Xa</title>
+
+  <!-- noVNC core từ CDN -->
+  <script type="module">
+    import RFB from 'https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js';
+    window.RFB = RFB;
+  </script>
+
   <style>
-    :root{
-      --bg:#07111d;
-      --felt1:#106335;
-      --felt2:#0a4d28;
-      --felt3:#0f6b37;
-      --panel:#0f1624;
-      --panel2:#162235;
-      --line:rgba(255,255,255,.10);
-      --text:#eef4ff;
-      --muted:#9cb0cf;
-      --gold:#f7c948;
-      --blue:#4ea3ff;
-      --red:#ef5a5a;
-      --green:#2bd47f;
-      --shadow:0 18px 50px rgba(0,0,0,.35);
-      --cardw:56px;
-      --cardh:78px;
-    }
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    html,body{height:100%}
-    body{
-      margin:0;color:var(--text);
-      background:
-        radial-gradient(circle at 50% 12%, rgba(255,255,255,.08), transparent 24%),
-        linear-gradient(180deg,#07111d 0%, #0b1521 100%);
-      overflow-x:hidden;
-    }
-    .wrap{min-height:100%;display:flex;flex-direction:column}
-    .topbar{
-      position:sticky;top:0;z-index:20;
-      backdrop-filter:blur(12px);
-      background:linear-gradient(180deg, rgba(7,12,20,.94), rgba(7,12,20,.72));
-      border-bottom:1px solid var(--line);
-    }
-    .topbar-inner{
-      max-width:1280px;margin:0 auto;padding:12px 14px;
-      display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-    }
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{
-      width:44px;height:44px;border-radius:14px;
-      background:linear-gradient(145deg,#ffd86a,#b98d11);
-      color:#17301b;font-weight:900;display:grid;place-items:center;
-      box-shadow:0 10px 18px rgba(247,201,72,.28);
-      flex:0 0 auto;
-    }
-    .title{font-size:18px;font-weight:900;line-height:1.1}
-    .subtitle{font-size:12px;color:rgba(255,255,255,.58);margin-top:2px}
-    .statusbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .chip{
-      padding:7px 12px;border-radius:999px;
-      background:rgba(255,255,255,.08);
-      border:1px solid var(--line);
-      color:rgba(255,255,255,.88);
-      font-size:12px;font-weight:800;
-    }
-    .chip.blue{background:rgba(78,163,255,.16);border-color:rgba(78,163,255,.28);color:#d8ebff}
-    .chip.warn{background:rgba(247,201,72,.16);border-color:rgba(247,201,72,.26);color:#ffe9a3}
-    .chip.green{background:rgba(43,212,127,.14);border-color:rgba(43,212,127,.22);color:#c0f8dd}
-    .btnrow{display:flex;gap:8px;flex-wrap:wrap}
-    button{
-      border:0;cursor:pointer;user-select:none;
-      padding:10px 14px;border-radius:12px;
-      color:white;font-weight:800;font-size:13px;
-      background:linear-gradient(180deg,#2a3b59,#1c2940);
-      box-shadow:0 8px 16px rgba(0,0,0,.18);
-      transition:transform .12s ease, filter .12s ease, opacity .12s ease;
-    }
-    button:hover{transform:translateY(-1px);filter:brightness(1.05)}
-    button:active{transform:translateY(0px) scale(.98)}
-    button:disabled{opacity:.42;cursor:not-allowed;transform:none}
-    button.primary{background:linear-gradient(180deg,#2987ff,#1768d8)}
-    button.good{background:linear-gradient(180deg,#29d27a,#1aa85f)}
-    button.danger{background:linear-gradient(180deg,#f16565,#d93b3b)}
-    button.ghost{background:linear-gradient(180deg,#31425f,#24324a)}
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-    .main{
-      flex:1;
-      max-width:1280px;margin:0 auto;width:100%;
-      padding:14px;
-      display:grid;gap:14px;
-      grid-template-columns: 1.6fr .9fr;
-    }
-    .table{
-      position:relative;
-      min-height:calc(100vh - 120px);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:28px;
-      overflow:hidden;
-      background:
-        radial-gradient(circle at 50% 34%, rgba(255,255,255,.12), transparent 22%),
-        radial-gradient(circle at 50% 58%, rgba(255,255,255,.08), transparent 36%),
-        linear-gradient(180deg, var(--felt1), var(--felt2));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), var(--shadow);
-    }
-    .table::before{
-      content:"";position:absolute;inset:12px;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:24px;
-      pointer-events:none;
-    }
-    .table::after{
-      content:"";position:absolute;inset:0;
-      background:radial-gradient(circle at 50% 50%, transparent 0 42%, rgba(0,0,0,.18) 75%, rgba(0,0,0,.28) 100%);
-      pointer-events:none;
-      mix-blend-mode:multiply;
-    }
-    .table-pad{
-      position:absolute;inset:18px;
-      display:grid;
-      grid-template-rows:auto 1fr auto;
-      gap:12px;
-      z-index:1;
-    }
-    .table-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-    .status{
-      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-      padding:10px 14px;border-radius:16px;
-      background:rgba(7,17,29,.42);
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow:0 8px 20px rgba(0,0,0,.14);
-    }
-    .status b{color:#fff}
-    .status .small{font-size:12px;color:rgba(255,255,255,.68)}
-    .turn-badge{
-      padding:8px 12px;border-radius:999px;
-      background:linear-gradient(180deg, rgba(247,201,72,.24), rgba(247,201,72,.12));
-      border:1px solid rgba(247,201,72,.28);
-      color:#fff1b8;font-weight:900;font-size:12px;
-      box-shadow:0 8px 18px rgba(0,0,0,.14);
-      white-space:nowrap;
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #151820;
+      --border:    #1e2330;
+      --accent:    #3b82f6;
+      --accent2:   #6366f1;
+      --success:   #22c55e;
+      --warning:   #f59e0b;
+      --danger:    #ef4444;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --mono:      'JetBrains Mono', monospace;
     }
 
-    .board-area{
-      display:grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap:14px;
-      align-items:center;
-    }
-    .board-box{
-      min-height:160px;
-      background:rgba(7,17,29,.20);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:20px;
-      padding:12px;
-    }
-    .board-title{
-      display:flex;align-items:center;justify-content:space-between;
-      color:rgba(255,255,255,.74);font-size:12px;font-weight:800;margin-bottom:10px;
-      text-transform:uppercase;letter-spacing:.8px;
-    }
-    .opp-head{display:flex;align-items:center;gap:8px}
-    .turn-dot{width:9px;height:9px;border-radius:50%;background:#7e8799;display:inline-block}
-    .turn-dot.active{background:var(--gold);box-shadow:0 0 0 8px rgba(247,201,72,.10)}
-    .opp-info{font-size:12px;color:rgba(255,255,255,.60)}
-    .opp-zone{display:flex;flex-direction:column;gap:10px;min-height:100px}
-    .opp-hand{
-      display:flex;align-items:center;min-height:52px;overflow:hidden;
-      padding:2px 0 6px;
-    }
-    .opp-card{
-      width:30px;height:44px;border-radius:7px;margin-left:-12px;flex:0 0 auto;
-      border:1px solid rgba(255,255,255,.18);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.04)),
-        repeating-linear-gradient(45deg, #1a3f72, #1a3f72 6px, #2554a0 6px, #2554a0 12px);
-      box-shadow:0 6px 14px rgba(0,0,0,.24);
-    }
-    .opp-card:first-child{margin-left:0}
-    .opp-played{
-      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-      min-height:86px;
-    }
-    .played-card{
-      width:84px;height:122px;border-radius:14px;
-      background:linear-gradient(180deg,#fdfdfd,#eef2f7);
-      border:1px solid rgba(0,0,0,.12);
-      box-shadow:0 12px 24px rgba(0,0,0,.24);
-      display:flex;flex-direction:column;align-items:center;justify-content:space-between;
-      padding:8px 6px;color:#111;font-weight:900;
-      transform:rotate(-1deg);
-      flex:0 0 auto;
-    }
-    .played-card.red{color:#d92626}
-    .played-card .corner{font-size:16px;line-height:1}
-    .played-card .mid{font-size:24px;line-height:1}
-    .played-empty{color:rgba(255,255,255,.55);font-size:13px;font-weight:700;padding:10px 0}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .center-stack{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
-    .pile{
-      width:92px;height:128px;border-radius:18px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03)),
-        linear-gradient(180deg, #174f8d, #103b6b);
-      border:1px solid rgba(255,255,255,.16);
-      box-shadow:0 14px 24px rgba(0,0,0,.28);
-      position:relative;overflow:hidden;
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    .pile::before{
-      content:"";position:absolute;inset:10px;
-      border-radius:14px;border:1px dashed rgba(255,255,255,.20);
-    }
-    .pile::after{
-      content:"BỘ BÀI";
-      position:absolute;left:50%;top:50%;
-      transform:translate(-50%,-50%);
-      color:rgba(255,255,255,.65);font-weight:900;font-size:14px;letter-spacing:1.5px;
-    }
-    .timer-ring{
-      width:110px;height:110px;border-radius:50%;
-      display:grid;place-items:center;
-      background:conic-gradient(var(--gold) 0deg, rgba(255,255,255,.12) 0deg);
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow:0 10px 22px rgba(0,0,0,.22);
-      position:relative;
-    }
-    .timer-ring::before{
-      content:"";position:absolute;inset:10px;border-radius:50%;
-      background:rgba(7,17,29,.82);
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .timer-inner{position:relative;z-index:1;text-align:center}
-    .timer-num{font-size:30px;font-weight:900;line-height:1}
-    .timer-label{font-size:11px;color:rgba(255,255,255,.62);font-weight:800;margin-top:4px}
 
-    .table-row,.hand-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;min-height:54px}
-    .card{
-      width:var(--cardw);height:var(--cardh);
-      border-radius:12px;background:linear-gradient(180deg,#ffffff,#eef2f7);
-      border:1px solid rgba(0,0,0,.10);
-      box-shadow:0 10px 20px rgba(0,0,0,.24);
-      color:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;
-      font-weight:900;user-select:none;cursor:pointer;transition:transform .12s ease, box-shadow .12s ease;
-      position:relative;
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 16px;
     }
-    .card:hover{transform:translateY(-8px)}
-    .card.sel{transform:translateY(-12px);box-shadow:0 14px 24px rgba(247,201,72,.32);outline:3px solid rgba(247,201,72,.85)}
-    .card.red{color:#d61e1e}
-    .card.black{color:#111}
-    .card.small{width:42px;height:60px;border-radius:10px;font-size:12px;cursor:default}
-    .corner{position:absolute;font-size:11px;font-weight:900;line-height:1}
-    .corner.tl{left:6px;top:5px}
-    .corner.br{right:6px;bottom:5px;transform:rotate(180deg)}
-    .suit{font-size:24px;line-height:1;transform:translateY(2px)}
-    .card.small .suit{font-size:16px}
 
-    .bottom-zone{display:grid;grid-template-columns:1fr;gap:12px}
-    .hand-wrap{
-      background:rgba(7,17,29,.20);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:22px;
-      padding:12px;
-      box-shadow:0 10px 22px rgba(0,0,0,.12);
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
     }
-    .hand-toolbar{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px
-    }
-    .help{color:rgba(255,255,255,.65);font-size:12px;font-weight:700}
-    .hand-row{
-      min-height:98px;
-      align-items:flex-end;
-      padding:10px 6px 2px;
-      overflow-x:auto;
-      overflow-y:hidden;
-      scrollbar-width:thin;
-    }
-    .hand-row::-webkit-scrollbar{height:8px}
-    .hand-row::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:999px}
-    .my-card{
-      width:64px;height:92px;flex:0 0 auto;
-      margin-left:-18px;
-      border-radius:14px;
-      background:linear-gradient(180deg,#fff,#edf1f7);
-      border:1px solid rgba(0,0,0,.10);
-      box-shadow:0 12px 22px rgba(0,0,0,.28);
-      color:#111;font-weight:900;display:flex;flex-direction:column;justify-content:space-between;
-      padding:7px 6px;cursor:pointer;user-select:none;transition:transform .12s ease, box-shadow .12s ease;
-      position:relative;
-    }
-    .my-card:first-child{margin-left:0}
-    .my-card:hover{transform:translateY(-12px)}
-    .my-card.sel{transform:translateY(-16px);outline:3px solid rgba(247,201,72,.85);box-shadow:0 14px 24px rgba(247,201,72,.28)}
-    .my-card.red{color:#df2222}
-    .my-card .corner{font-size:14px}
-    .my-card .suit{font-size:22px}
+    .logo svg { color: var(--accent); }
 
-    .sidebar{display:grid;gap:14px;align-content:start}
-    .panel{
-      background:rgba(17,24,39,.92);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:22px;
-      padding:14px;
-      box-shadow:var(--shadow);
+    .conn-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      max-width: 700px;
     }
-    .panel h3{margin:0 0 10px;font-size:16px}
-    .list{display:flex;flex-direction:column;gap:8px}
-    .item{
-      display:flex;justify-content:space-between;gap:8px;align-items:flex-start;
-      padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);font-size:13px;font-weight:800
+
+    .field-group {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 12px;
+      height: 36px;
+      gap: 6px;
+      flex: 1;
+      transition: border-color .2s;
     }
-    .item span{color:rgba(255,255,255,.65);font-weight:700}
-    .log{
-      height:220px;overflow:auto;
-      background:rgba(7,17,29,.58);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:14px;
-      padding:10px;
-      font-size:13px;line-height:1.5;
+    .field-group:focus-within { border-color: var(--accent); }
+    .field-group label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      white-space: nowrap;
     }
-    .log div{margin-bottom:6px;color:rgba(255,255,255,.82)}
-    .log .sys{color:rgba(255,255,255,.55);font-style:italic}
-    .end-banner{
-      display:none;margin-top:10px;
-      padding:12px 14px;border-radius:16px;
-      background:linear-gradient(180deg, rgba(247,201,72,.18), rgba(247,201,72,.10));
-      border:1px solid rgba(247,201,72,.24);
-      color:#fff2b8;font-weight:900;
+    .field-group input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      width: 100%;
     }
-    .end-banner.show{display:block}
-    .winner{color:#fff;font-size:16px;font-weight:900}
-    @media (max-width:1100px){ .main{grid-template-columns:1fr} .table{min-height:0} }
-    @media (max-width:560px){
-      :root{--cardw:48px;--cardh:68px}
-      .my-card{width:56px;height:82px}
-      .played-card{width:76px;height:110px}
-      .topbar-inner{padding:10px}
-      .main{padding:10px}
-      .board-area{grid-template-columns:1fr}
-      .timer-ring{width:96px;height:96px}
+    .field-group input::placeholder { color: var(--muted); }
+
+    .field-group.narrow { flex: 0 0 110px; }
+    .field-group.pw     { flex: 0 0 150px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter .15s, opacity .15s;
+      white-space: nowrap;
+    }
+    .btn:hover   { filter: brightness(1.15); }
+    .btn:active  { filter: brightness(.9); }
+    .btn-connect { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .btn-disco   { background: var(--danger); color: #fff; display: none; }
+    .btn-icon    { background: var(--border); color: var(--text); padding: 0 10px; }
+
+    /* status dot */
+    #status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background .3s;
+      box-shadow: 0 0 0 0 transparent;
+    }
+    #status-dot.connected  {
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.25);
+    }
+    #status-dot.connecting { background: var(--warning); animation: pulse 1s infinite; }
+    #status-dot.error      { background: var(--danger); }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.4); }
+      50%      { box-shadow: 0 0 0 5px rgba(245,158,11,0); }
+    }
+
+    #status-text {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── TOOLBAR ── */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    #toolbar .sep {
+      width: 1px; height: 20px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+    #toolbar label { font-size: 12px; color: var(--muted); }
+    #toolbar select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 12px;
+      padding: 3px 8px;
+      height: 28px;
+      outline: none;
+      cursor: pointer;
+    }
+    #toolbar select:focus { border-color: var(--accent); }
+
+    /* ── CANVAS AREA ── */
+    #canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #screen { width: 100%; height: 100%; }
+
+    /* placeholder */
+    #placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      pointer-events: none;
+    }
+    .placeholder-icon {
+      width: 80px; height: 80px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+    }
+    .placeholder-icon svg { width: 36px; height: 36px; }
+    #placeholder h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    #placeholder p {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      max-width: 340px;
+      line-height: 1.6;
+    }
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      width: 340px;
+    }
+    .step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .step-num {
+      background: var(--border);
+      color: var(--accent);
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform .3s ease;
+      z-index: 999;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.ok   { border-color: var(--success); color: var(--success); }
+    #toast.err  { border-color: var(--danger);  color: var(--danger);  }
+    #toast.info { border-color: var(--accent);  color: var(--accent);  }
+
+    /* ── FULLSCREEN ── */
+    #canvas-wrap:fullscreen #screen,
+    #canvas-wrap:-webkit-full-screen #screen { width: 100vw; height: 100vh; }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      .conn-bar { flex-wrap: wrap; }
+      .field-group.narrow, .field-group.pw { flex: 1 1 120px; }
+      header { height: auto; padding: 10px 12px; flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <div class="logo">P</div>
-        <div>
-          <div class="title">Phỏm 2 Người</div>
-          <div class="subtitle">Bàn chơi đẹp, 30 giây mỗi lượt, tự qua lượt nếu hết giờ</div>
-        </div>
-      </div>
-      <div class="statusbar">
-        <span class="chip blue">Lượt: <b id="turnName">-</b></span>
-        <span class="chip warn">Deck: <b id="deckCount">0</b></span>
-        <span class="chip green">Còn: <b id="timeLeft">30</b>s</span>
-      </div>
-      <div class="btnrow">
-        <button class="primary" id="newGame">Ván mới</button>
-        <button id="drawBtn">Bốc</button>
-        <button class="good" id="meldBtn">Hạ phỏm</button>
-        <button class="danger" id="discardBtn">Đánh</button>
-        <button class="ghost" id="eatBtn">Ăn</button>
-      </div>
-    </div>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2"/>
+      <path d="M8 21h8M12 17v4"/>
+    </svg>
+    RemoteDesk
   </div>
 
-  <div class="main">
-    <section class="table">
-      <div class="table-pad">
-        <div class="table-top">
-          <div class="status">
-            <div class="turn-badge">BÀN PHỎM 2 NGƯỜI</div>
-            <div>
-              <div><b id="roomState">Đang chờ</b></div>
-              <div class="small">Đối thủ phía trên, bài của bạn phía dưới, lá vừa đánh hiển thị rõ</div>
-            </div>
-          </div>
-          <div class="status">
-            <div style="display:flex;align-items:center;gap:12px">
-              <div class="timer-ring" id="timerRing">
-                <div class="timer-inner">
-                  <div class="timer-num" id="timeLeftBig">30</div>
-                  <div class="timer-label">GIÂY</div>
-                </div>
-              </div>
-              <div>
-                <div class="small">Tổng điểm hiện tại</div>
-                <div style="font-weight:900" id="scoreSummary">-</div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="conn-bar">
+    <div class="field-group">
+      <label>HOST</label>
+      <input id="inp-host" type="text" placeholder="192.168.1.10 hoặc domain" value="" />
+    </div>
+    <div class="field-group narrow">
+      <label>PORT</label>
+      <input id="inp-port" type="number" placeholder="6080" value="6080" />
+    </div>
+    <div class="field-group pw">
+      <label>MẬT KHẨU</label>
+      <input id="inp-pass" type="password" placeholder="(tuỳ chọn)" />
+    </div>
+    <button class="btn btn-connect" id="btn-connect" onclick="doConnect()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+      Kết nối
+    </button>
+    <button class="btn btn-disco" id="btn-disco" onclick="doDisconnect()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+      Ngắt
+    </button>
+    <div id="status-dot"></div>
+    <span id="status-text">Chưa kết nối</span>
+  </div>
+</header>
 
-        <div class="board-area">
-          <div class="board-box">
-            <div class="board-title">
-              <span class="opp-head"><span class="turn-dot" id="oppDot"></span>Đối thủ</span>
-              <span class="opp-info" id="oppInfo">9 lá</span>
-            </div>
-            <div class="opp-zone">
-              <div class="opp-hand" id="oppHand"></div>
-              <div class="opp-played" id="oppPlayed"></div>
-            </div>
-          </div>
+<!-- ── TOOLBAR ── -->
+<div id="toolbar">
+  <button class="btn btn-icon" title="Gửi Ctrl+Alt+Del" onclick="sendCAD()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
+    </svg>
+    Ctrl+Alt+Del
+  </button>
 
-          <div class="center-stack">
-            <div class="pile" id="deckPile" title="Bộ bài"></div>
-          </div>
+  <button class="btn btn-icon" title="Toàn màn hình" onclick="doFullscreen()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+      <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+    </svg>
+    Toàn màn hình
+  </button>
 
-          <div class="board-box">
-            <div class="board-title">
-              <span>Bài đã đánh</span>
-              <span id="tableCount">0 lá</span>
-            </div>
-            <div class="table-row" id="tableArea"></div>
-          </div>
-        </div>
+  <button class="btn btn-icon" title="Chụp màn hình" onclick="doScreenshot()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+    Chụp màn hình
+  </button>
 
-        <div class="bottom-zone">
-          <div class="hand-wrap">
-            <div class="hand-toolbar">
-              <div>
-                <div style="font-weight:900;font-size:15px">Bài trên tay của bạn</div>
-                <div class="help">Chọn bài để hạ phỏm hoặc đánh. Hết 30 giây sẽ tự qua lượt.</div>
-              </div>
-              <div class="help" id="handCount">0 lá</div>
-            </div>
-            <div class="hand-row" id="handArea"></div>
-          </div>
+  <div class="sep"></div>
 
-          <div class="status" style="justify-content:space-between">
-            <div class="help">Phỏm hợp lệ: sảnh cùng chất hoặc bộ 3/bộ 4 cùng số.</div>
-            <div class="winner" id="winnerText"></div>
-          </div>
-          <div class="end-banner" id="endBanner"></div>
-        </div>
+  <label>Chất lượng:</label>
+  <select id="sel-quality" onchange="setQuality()">
+    <option value="9">Cao nhất</option>
+    <option value="6" selected>Trung bình</option>
+    <option value="3">Thấp (tiết kiệm)</option>
+  </select>
+
+  <label style="margin-left:8px">Nén:</label>
+  <select id="sel-compress" onchange="setCompress()">
+    <option value="2">Nén thấp</option>
+    <option value="4" selected>Nén vừa</option>
+    <option value="9">Nén cao</option>
+  </select>
+
+  <div class="sep"></div>
+
+  <label>Clipboard:</label>
+  <button class="btn btn-icon" onclick="pasteClip()">Dán sang máy từ xa</button>
+</div>
+
+<!-- ── CANVAS ── -->
+<div id="canvas-wrap">
+  <div id="screen"></div>
+
+  <div id="placeholder">
+    <div class="placeholder-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <path d="M8 21h8M12 17v4"/>
+        <path d="M7 8l3 2-3 2M13 12h4"/>
+      </svg>
+    </div>
+    <h2>Điều khiển máy từ xa</h2>
+    <p>Nhập địa chỉ máy chủ VNC + port WebSocket rồi nhấn <strong>Kết nối</strong>.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <span>Cài <strong>websockify</strong> trên máy cần điều khiển:<br>
+          <code style="font-family:var(--mono);font-size:11px;color:#a5b4fc">
+            websockify --web . 6080 localhost:5900
+          </code>
+        </span>
       </div>
-    </section>
-
-    <aside class="sidebar">
-      <div class="panel">
-        <h3>Người chơi</h3>
-        <div class="list" id="players"></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <span>Đảm bảo <strong>VNC Server</strong> đang chạy (port 5900) và mở firewall port 6080.</span>
       </div>
-      <div class="panel">
-        <h3>Phỏm đã hạ</h3>
-        <div class="list" id="meldInfo"></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <span>Nhập host + port vào thanh trên, điền mật khẩu nếu cần, rồi <strong>Kết nối</strong>.</span>
       </div>
-      <div class="panel">
-        <h3>Nhật ký</h3>
-        <div class="log" id="log"></div>
-      </div>
-    </aside>
+    </div>
   </div>
 </div>
 
+<!-- ── TOAST ── -->
+<div id="toast">
+  <span id="toast-icon">●</span>
+  <span id="toast-msg"></span>
+</div>
+
 <script>
-const SUITS=['♠','♥','♦','♣'];
-const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  let rfb = null;
 
-let deck=[],players=[],discardPile=[],turn=0,selected=new Set(),ended=false,justDrew=false,canEat=false;
-let timer=30,timerId=null;
+  /* ── KẾT NỐI ── */
+  function doConnect() {
+    const host = document.getElementById('inp-host').value.trim();
+    const port = document.getElementById('inp-port').value.trim() || '6080';
+    const pass = document.getElementById('inp-pass').value;
 
-const el={
-  turnName:document.getElementById('turnName'),
-  deckCount:document.getElementById('deckCount'),
-  timeLeft:document.getElementById('timeLeft'),
-  timeLeftBig:document.getElementById('timeLeftBig'),
-  timerRing:document.getElementById('timerRing'),
-  roomState:document.getElementById('roomState'),
-  scoreSummary:document.getElementById('scoreSummary'),
-  oppDot:document.getElementById('oppDot'),
-  oppInfo:document.getElementById('oppInfo'),
-  oppHand:document.getElementById('oppHand'),
-  oppPlayed:document.getElementById('oppPlayed'),
-  tableArea:document.getElementById('tableArea'),
-  tableCount:document.getElementById('tableCount'),
-  handArea:document.getElementById('handArea'),
-  handCount:document.getElementById('handCount'),
-  players:document.getElementById('players'),
-  meldInfo:document.getElementById('meldInfo'),
-  log:document.getElementById('log'),
-  winnerText:document.getElementById('winnerText'),
-  endBanner:document.getElementById('endBanner')
-};
+    if (!host) { toast('Vui lòng nhập địa chỉ máy chủ!', 'err'); return; }
 
-function log(t,sys=false){
-  const d=document.createElement('div');
-  d.textContent=t;
-  if(sys) d.className='sys';
-  el.log.appendChild(d);
-  el.log.scrollTop=el.log.scrollHeight;
-}
+    setStatus('connecting', 'Đang kết nối…');
+    showPlaceholder(false);
 
-function makeDeck(){
-  const d=[];
-  for(const s of SUITS){
-    for(let r=1;r<=13;r++){
-      d.push({id:Math.random().toString(36).slice(2,10),suit:s,rank:r,label:RANKS[r-1],value:r===1?1:Math.min(r,10)});
-    }
-  }
-  for(let i=d.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [d[i],d[j]]=[d[j],d[i]];
-  }
-  return d;
-}
+    const url = `wss://${host}:${port}`;
 
-function score(hand,melds){
-  const meldIds=new Set(melds.flat().map(c=>c.id));
-  return hand.filter(c=>!meldIds.has(c.id)).reduce((a,c)=>a+c.value,0);
-}
-
-function sameRank(cards){ return cards.length>=3 && cards.every(c=>c.rank===cards[0].rank); }
-function isSequence(cards){
-  if(cards.length<3) return false;
-  const suit=cards[0].suit;
-  const arr=[...cards].sort((a,b)=>a.rank-b.rank);
-  if(!arr.every(c=>c.suit===suit)) return false;
-  for(let i=1;i<arr.length;i++) if(arr[i].rank!==arr[i-1].rank+1) return false;
-  return true;
-}
-function validMeld(cards){ return sameRank(cards) || isSequence(cards); }
-
-function findMeld(hand){
-  for(let i=0;i<hand.length;i++){
-    for(let j=i+1;j<hand.length;j++){
-      for(let k=j+1;k<hand.length;k++){
-        const a=[hand[i],hand[j],hand[k]];
-        if(validMeld(a)) return a;
-      }
-    }
-  }
-  return [];
-}
-
-function current(){ return players[turn]; }
-
-function clearTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
-
-function startTimer(){
-  clearTimer();
-  timer=30;
-  updateTimerUI();
-  timerId=setInterval(()=>{
-    if(ended) return clearTimer();
-    timer--;
-    if(timer<=0){
-      timer=0;
-      updateTimerUI();
-      clearTimer();
-      autoPass();
-      return;
-    }
-    updateTimerUI();
-  },1000);
-}
-function updateTimerUI(){
-  el.timeLeft.textContent=timer;
-  el.timeLeftBig.textContent=timer;
-  const pct=Math.max(0,timer)/30*360;
-  el.timerRing.style.background=`conic-gradient(${timer<=10?'#ef5a5a':'#f7c948'} ${pct}deg, rgba(255,255,255,.12) ${pct}deg)`;
-}
-
-function nextTurn(){
-  turn=(turn+1)%players.length;
-  justDrew=false;
-  selected.clear();
-  canEat=false;
-  startTimer();
-  render();
-  aiStep();
-}
-
-function renderCard(card, cls, extra=''){
-  const red=card.suit==='♥' || card.suit==='♦';
-  return `
-    <div class="${cls} ${red?'red':'black'} ${extra}" data-id="${card.id}">
-      <div class="corner tl">${card.label}</div>
-      <div class="suit">${card.suit}</div>
-      <div class="corner br">${card.label}</div>
-    </div>
-  `;
-}
-function renderPlayedCard(card){
-  const red=card.suit==='♥' || card.suit==='♦';
-  return `
-    <div class="played-card ${red?'red':''}">
-      <div class="corner">${card.label}</div>
-      <div class="mid">${card.suit}</div>
-      <div class="corner" style="transform:rotate(180deg)">${card.label}</div>
-    </div>
-  `;
-}
-
-function render(){
-  if(ended){
-    const s0=score(players[0].hand,players[0].melds);
-    const s1=score(players[1].hand,players[1].melds);
-    let win='Hòa';
-    if(s0<s1) win=players[0].name;
-    else if(s1<s0) win=players[1].name;
-    el.winnerText.textContent='Thắng: ' + win;
-    el.endBanner.classList.add('show');
-    el.endBanner.textContent='Kết thúc ván. ' + players[0].name + ' = ' + s0 + ' điểm, ' + players[1].name + ' = ' + s1 + ' điểm.';
-  } else {
-    el.winnerText.textContent='';
-    el.endBanner.classList.remove('show');
-  }
-
-  el.turnName.textContent=ended?'Kết thúc':current().name;
-  el.deckCount.textContent=deck.length;
-  el.tableCount.textContent=discardPile.length + ' lá';
-  el.handCount.textContent=current().hand.length + ' lá';
-  el.roomState.textContent=ended?'Đã xong':'Đang chơi';
-  el.oppDot.classList.toggle('active', !ended && turn===1);
-  el.oppInfo.textContent=players[1].hand.length + ' lá';
-  el.scoreSummary.textContent = players.map(p=>p.name + ': ' + score(p.hand,p.melds)).join(' • ');
-
-  el.players.innerHTML = players.map((p,i)=>`
-    <div class="item" style="${i===turn&&!ended?'outline:2px solid rgba(247,201,72,.65)':''}">
-      <div>${i===turn&&!ended?'<span>▶</span> ':''}${p.name}</div>
-      <div>${p.hand.length} lá | ${p.melds.length} phỏm | <span>${score(p.hand,p.melds)} điểm</span></div>
-    </div>
-  `).join('');
-
-  el.meldInfo.innerHTML = players.map(p=>`
-    <div class="item">
-      <div>${p.name}</div>
-      <div>${p.melds.length ? p.melds.map(m=>m.map(c=>c.label+c.suit).join('-')).join('<br>') : 'Chưa có phỏm'}</div>
-    </div>
-  `).join('');
-
-  el.oppHand.innerHTML = players[1].hand.map(()=>'<div class="opp-card"></div>').join('');
-  el.oppPlayed.innerHTML = players[1].lastPlayed ? renderPlayedCard(players[1].lastPlayed) : '<div class="played-empty">Chưa đánh lá nào</div>';
-  el.tableArea.innerHTML = discardPile.slice(-10).map(c=>renderCard(c,'card small')).join('');
-  el.handArea.innerHTML = current().hand.map((c,i)=>renderCard(c,'my-card',selected.has(i)?'sel':'')).join('');
-
-  const cards=[...document.querySelectorAll('#handArea .my-card')];
-  cards.forEach((card, idx)=>{
-    card.dataset.index=idx;
-    card.onclick=()=>{
-      if(ended || turn!==0) return;
-      const i=+card.dataset.index;
-      selected.has(i) ? selected.delete(i) : selected.add(i);
-      render();
-    };
-  });
-
-  document.getElementById('drawBtn').disabled = ended || turn!==0 || justDrew;
-  document.getElementById('meldBtn').disabled = ended || turn!==0;
-  document.getElementById('discardBtn').disabled = ended || turn!==0 || !justDrew;
-  document.getElementById('eatBtn').disabled = ended || turn!==0 || !canEat;
-}
-
-function newGame(){
-  clearTimer();
-  deck=makeDeck();
-  players=[
-    {name:'Bạn',hand:deck.splice(0,9),melds:[],lastPlayed:null},
-    {name:'Đối thủ',hand:deck.splice(0,9),melds:[],lastPlayed:null}
-  ];
-  discardPile=[deck.pop()];
-  turn=0;
-  selected.clear();
-  ended=false;
-  justDrew=false;
-  canEat=false;
-  el.log.innerHTML='';
-  log('Bắt đầu ván mới.',true);
-  startTimer();
-  render();
-}
-
-function draw(){
-  if(ended || turn!==0 || justDrew) return;
-  if(!deck.length) return endGame();
-  current().hand.push(deck.pop());
-  justDrew=true;
-  log('Bạn bốc 1 lá.');
-  render();
-}
-
-function meld(){
-  if(ended || turn!==0) return;
-  const h=current().hand;
-  const cards=[...selected].sort((a,b)=>a-b).map(i=>h[i]);
-  if(!validMeld(cards)) return alert('Bộ phỏm không hợp lệ.');
-  current().melds.push(cards);
-  [...selected].sort((a,b)=>b-a).forEach(i=>h.splice(i,1));
-  selected.clear();
-  log('Bạn hạ phỏm: ' + cards.map(c=>c.label+c.suit).join('-'));
-  render();
-}
-
-function discard(){
-  if(ended || turn!==0 || !justDrew) return;
-  if(!selected.size) return alert('Chọn 1 lá để đánh.');
-  const idx=[...selected][0];
-  const c=current().hand.splice(idx,1)[0];
-  discardPile.push(c);
-  current().lastPlayed=c;
-  selected.clear();
-  log('Bạn đánh ' + c.label + c.suit + '.');
-  if(!deck.length || current().hand.length===0) return endGame();
-  nextTurn();
-}
-
-function eat(){
-  if(ended || turn!==0 || !canEat) return;
-  const top=discardPile.pop();
-  current().hand.push(top);
-  justDrew=true;
-  canEat=false;
-  log('Bạn ăn ' + top.label + top.suit + '.');
-  render();
-}
-
-function autoPass(){
-  if(ended || turn!==0) return;
-  if(!justDrew && deck.length) current().hand.push(deck.pop());
-  const c=current().hand.reduce((a,b)=>a.value>=b.value?a:b);
-  const idx=current().hand.findIndex(x=>x.id===c.id);
-  if(idx>=0){
-    current().hand.splice(idx,1);
-    discardPile.push(c);
-    current().lastPlayed=c;
-    log('Hết giờ, tự đánh ' + c.label + c.suit + '.', true);
-  }
-  if(!deck.length || current().hand.length===0) return endGame();
-  nextTurn();
-}
-
-function endGame(){ ended=true; clearTimer(); render(); }
-
-function aiStep(){
-  if(ended || turn===0) return;
-  const p=current();
-  setTimeout(()=>{
-    if(ended || turn===0) return;
-    if(deck.length && Math.random()>0.28){
-      p.hand.push(deck.pop());
-      log('Đối thủ bốc bài.', true);
-    }
-    const meldCards=findMeld(p.hand);
-    if(meldCards.length && Math.random()>0.35){
-      p.melds.push(meldCards);
-      meldCards.forEach(c=>{
-        const idx=p.hand.findIndex(x=>x===c);
-        if(idx>=0) p.hand.splice(idx,1);
+    try {
+      rfb = new window.RFB(document.getElementById('screen'), url, {
+        credentials: pass ? { password: pass } : undefined
       });
-      log('Đối thủ hạ phỏm.', true);
+
+      rfb.viewOnly       = false;
+      rfb.scaleViewport  = true;
+      rfb.resizeSession  = true;
+
+      rfb.addEventListener('connect',    onConnected);
+      rfb.addEventListener('disconnect', onDisconnected);
+      rfb.addEventListener('credentialsrequired', () => {
+        const pw = prompt('Nhập mật khẩu VNC:');
+        if (pw !== null) rfb.sendCredentials({ password: pw });
+      });
+
+      setQuality();
+      setCompress();
+    } catch (e) {
+      setStatus('error', 'Lỗi khởi tạo');
+      toast('Không thể tạo kết nối: ' + e.message, 'err');
+      showPlaceholder(true);
     }
-    const idx=Math.floor(Math.random()*p.hand.length);
-    const c=p.hand.splice(idx,1)[0];
-    discardPile.push(c);
-    p.lastPlayed=c;
-    log('Đối thủ đánh ' + c.label + c.suit + '.', true);
-    if(!deck.length || p.hand.length===0) return endGame();
-    nextTurn();
-  }, 900);
-}
 
-document.getElementById('newGame').onclick = newGame;
-document.getElementById('drawBtn').onclick = draw;
-document.getElementById('meldBtn').onclick = meld;
-document.getElementById('discardBtn').onclick = discard;
-document.getElementById('eatBtn').onclick = eat;
+    document.getElementById('btn-connect').style.display = 'none';
+    document.getElementById('btn-disco').style.display   = 'inline-flex';
+  }
 
-newGame();
+  function onConnected() {
+    setStatus('connected', 'Đã kết nối');
+    toast('Kết nối thành công!', 'ok');
+  }
+
+  function onDisconnected(e) {
+    const clean = e.detail && e.detail.clean;
+    setStatus('error', clean ? 'Đã ngắt kết nối' : 'Mất kết nối');
+    toast(clean ? 'Đã ngắt kết nối.' : 'Mất kết nối với máy từ xa.', clean ? 'info' : 'err');
+    showPlaceholder(true);
+    document.getElementById('btn-connect').style.display = 'inline-flex';
+    document.getElementById('btn-disco').style.display   = 'none';
+    rfb = null;
+  }
+
+  /* ── NGẮT ── */
+  function doDisconnect() {
+    if (rfb) rfb.disconnect();
+  }
+
+  /* ── CTRL+ALT+DEL ── */
+  function sendCAD() {
+    if (!rfb) { toast('Chưa kết nối.', 'err'); return; }
+    rfb.sendCtrlAltDel();
+    toast('Đã gửi Ctrl+Alt+Del', 'info');
+  }
+
+  /* ── FULLSCREEN ── */
+  function doFullscreen() {
+    const wrap = document.getElementById('canvas-wrap');
+    if (!document.fullscreenElement) {
+      wrap.requestFullscreen && wrap.requestFullscreen();
+    } else {
+      document.exitFullscreen && document.exitFullscreen();
+    }
+  }
+
+  /* ── CHỤP MÀN HÌNH ── */
+  function doScreenshot() {
+    if (!rfb) { toast('Chưa kết nối.', 'err'); return; }
+    try {
+      const canvas = document.querySelector('#screen canvas');
+      if (!canvas) { toast('Không tìm thấy canvas.', 'err'); return; }
+      const a = document.createElement('a');
+      a.href     = canvas.toDataURL('image/png');
+      a.download = `screenshot_${Date.now()}.png`;
+      a.click();
+      toast('Đã lưu ảnh chụp màn hình.', 'ok');
+    } catch(e) {
+      toast('Lỗi chụp màn hình: ' + e.message, 'err');
+    }
+  }
+
+  /* ── CHẤT LƯỢNG / NÉN ── */
+  function setQuality() {
+    if (rfb) rfb.qualityLevel = parseInt(document.getElementById('sel-quality').value);
+  }
+  function setCompress() {
+    if (rfb) rfb.compressionLevel = parseInt(document.getElementById('sel-compress').value);
+  }
+
+  /* ── DÁN CLIPBOARD ── */
+  async function pasteClip() {
+    if (!rfb) { toast('Chưa kết nối.', 'err'); return; }
+    try {
+      const text = await navigator.clipboard.readText();
+      rfb.clipboardPasteFrom(text);
+      toast('Đã dán clipboard sang máy từ xa.', 'ok');
+    } catch(e) {
+      toast('Không đọc được clipboard: ' + e.message, 'err');
+    }
+  }
+
+  /* ── HELPERS ── */
+  function setStatus(state, text) {
+    const dot  = document.getElementById('status-dot');
+    const span = document.getElementById('status-text');
+    dot.className  = state;
+    span.textContent = text;
+  }
+
+  function showPlaceholder(show) {
+    document.getElementById('placeholder').style.display = show ? 'flex' : 'none';
+  }
+
+  let toastTimer;
+  function toast(msg, type = 'info') {
+    const el  = document.getElementById('toast');
+    const ico = document.getElementById('toast-icon');
+    const txt = document.getElementById('toast-msg');
+    ico.textContent = type === 'ok' ? '✓' : type === 'err' ? '✕' : 'ℹ';
+    txt.textContent = msg;
+    el.className    = `show ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = '', 3500);
+  }
+
+  /* Enter để kết nối */
+  document.querySelectorAll('.conn-bar input').forEach(el => {
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') doConnect(); });
+  });
 </script>
 </body>
 </html>
