@@ -3,1257 +3,1021 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đọc Văn Bản Tiếng Việt</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+<title>AI Voice Reader</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #f7f7f5;
-    --surface: #ffffff;
-    --border: rgba(0,0,0,0.1);
-    --border-mid: rgba(0,0,0,0.18);
-    --text: #1a1a1a;
-    --text-muted: #6b6b6b;
-    --accent: #2563eb;
-    --accent-light: #eff6ff;
-    --accent-border: #bfdbfe;
-    --success: #059669;
-    --success-bg: #ecfdf5;
-    --danger: #dc2626;
-    --danger-bg: #fef2f2;
-    --warning: #d97706;
-    --warning-bg: #fffbeb;
-    --radius: 10px;
-    --radius-sm: 6px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #111111;
-      --surface: #1e1e1e;
-      --border: rgba(255,255,255,0.1);
-      --border-mid: rgba(255,255,255,0.18);
-      --text: #f0f0f0;
-      --text-muted: #888;
-      --accent: #3b82f6;
-      --accent-light: #1e3a5f;
-      --accent-border: #1d4ed8;
-      --success-bg: #052e16;
-      --danger-bg: #450a0a;
-      --warning-bg: #292003;
-    }
+    --bg: #0d0d0f;
+    --surface: #18181b;
+    --surface2: #1f1f24;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --accent: #7c6fde;
+    --accent2: #a096f0;
+    --accent-glow: rgba(124,111,222,0.25);
+    --text: #f0f0f5;
+    --text2: #9090a0;
+    --text3: #606070;
+    --red: #e05555;
+    --green: #4ec994;
+    --amber: #e0a535;
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     background: var(--bg);
     color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 3rem;
   }
 
-  header {
-    background: var(--surface);
-    border-bottom: 0.5px solid var(--border);
-    padding: 14px 20px;
-    display: flex;
+  .header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo {
+    display: inline-flex;
     align-items: center;
     gap: 10px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    margin-bottom: 0.5rem;
   }
 
-  header .logo {
-    width: 32px; height: 32px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff;
-    font-size: 17px;
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  header h1 { font-size: 16px; font-weight: 600; }
-  header span { font-size: 13px; color: var(--text-muted); margin-left: auto; }
+  .logo-icon svg { width: 22px; height: 22px; fill: white; }
 
-  .container { max-width: 760px; margin: 0 auto; padding: 20px 16px 40px; }
-
-  .tab-row { display: flex; gap: 6px; margin-bottom: 16px; }
-
-  .tab {
-    padding: 7px 16px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    font-size: 14px;
-    cursor: pointer;
-    background: transparent;
-    color: var(--text-muted);
-    font-family: inherit;
-    transition: all 0.12s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .tab:hover { background: var(--surface); color: var(--text); }
-  .tab.active {
-    background: var(--surface);
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--text);
-    font-weight: 600;
-    border-color: var(--border-mid);
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+    color: var(--text2);
+    margin-top: 0.25rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
   }
 
   .card {
     background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
   }
 
   .card-title {
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 12px;
+    letter-spacing: 0.08em;
+    color: var(--text3);
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
 
-  textarea {
+  .step-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text2);
+  }
+
+  .step-badge.active {
+    background: var(--accent);
+    border-color: var(--accent2);
+    color: white;
+  }
+
+  .step-badge.done {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  /* Waveform visualizer */
+  .waveform-wrap {
+    background: var(--surface2);
+    border-radius: 10px;
+    height: 72px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .waveform-idle {
+    color: var(--text3);
+    font-size: 0.8rem;
+  }
+
+  canvas#waveCanvas {
     width: 100%;
-    min-height: 140px;
+    height: 72px;
+    display: none;
+  }
+
+  /* Record button area */
+  .rec-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .btn-record {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: var(--red);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 0 rgba(224,85,85,0.4);
+  }
+
+  .btn-record:hover { transform: scale(1.07); }
+
+  .btn-record.recording {
+    animation: pulse-red 1.2s infinite;
+  }
+
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(224,85,85,0.5); }
+    70% { box-shadow: 0 0 0 12px rgba(224,85,85,0); }
+    100% { box-shadow: 0 0 0 0 rgba(224,85,85,0); }
+  }
+
+  .btn-record svg { width: 22px; height: 22px; }
+
+  .rec-info {
+    flex: 1;
+  }
+
+  .rec-status {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .rec-hint {
+    font-size: 0.75rem;
+    color: var(--text2);
+  }
+
+  .timer {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+    min-width: 40px;
+    text-align: right;
+    display: none;
+  }
+
+  /* Playback */
+  .playback-bar {
+    display: none;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-top: 0.75rem;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .playback-bar.visible { display: flex; }
+
+  .btn-play-sample {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .btn-play-sample:hover { background: var(--surface); }
+  .btn-play-sample svg { width: 14px; height: 14px; fill: var(--text); }
+
+  .pb-label {
+    font-size: 0.78rem;
+    color: var(--text2);
+    flex: 1;
+  }
+
+  .pb-duration {
+    font-size: 0.75rem;
+    color: var(--text3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .btn-rerecord {
+    font-size: 0.73rem;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .btn-rerecord:hover { color: var(--text); background: var(--surface2); }
+
+  /* Voice analysis badge */
+  .voice-badge {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    background: rgba(78,201,148,0.1);
+    border: 1px solid rgba(78,201,148,0.25);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: var(--green);
+    align-items: center;
+    gap: 8px;
+  }
+
+  .voice-badge.show { display: flex; }
+  .voice-badge svg { width: 15px; height: 15px; fill: var(--green); flex-shrink: 0; }
+
+  /* TTS section */
+  textarea#inputText {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    padding: 0.9rem 1rem;
     resize: vertical;
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-    font-size: 15px;
+    min-height: 130px;
+    outline: none;
     font-family: inherit;
-    color: var(--text);
-    background: var(--bg);
-    line-height: 1.75;
-    transition: border-color 0.12s;
+    transition: border-color 0.15s;
   }
-  textarea:focus { outline: none; border-color: var(--accent); }
-  textarea::placeholder { color: var(--text-muted); }
 
-  input[type=text], input[type=password] {
+  textarea#inputText:focus { border-color: var(--accent); }
+  textarea#inputText::placeholder { color: var(--text3); }
+
+  .tts-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-speak {
+    flex: 1;
+    min-width: 140px;
+    height: 44px;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s, transform 0.1s, opacity 0.15s;
+  }
+
+  .btn-speak:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
+  .btn-speak:active:not(:disabled) { transform: translateY(0); }
+  .btn-speak:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-speak svg { width: 17px; height: 17px; fill: white; }
+
+  .btn-stop {
+    height: 44px;
+    padding: 0 1.1rem;
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    color: var(--text2);
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .btn-stop:hover { background: var(--surface2); color: var(--text); }
+  .btn-stop.visible { display: flex; }
+  .btn-stop svg { width: 15px; height: 15px; fill: currentColor; }
+
+  /* Voice settings */
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 0.75rem;
+  }
+
+  .setting-group label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text3);
+    margin-bottom: 5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .setting-group input[type=range] {
     width: 100%;
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 9px 12px;
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--text);
-    background: var(--bg);
-    transition: border-color 0.12s;
-  }
-  input[type=text]:focus, input[type=password]:focus { outline: none; border-color: var(--accent); }
-
-  .highlight-box {
-    min-height: 140px;
-    line-height: 1.9;
-    font-size: 15px;
-    color: var(--text);
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-    word-wrap: break-word;
+    accent-color: var(--accent);
+    cursor: pointer;
   }
 
-  .sentence { cursor: pointer; border-radius: 3px; padding: 2px 1px; transition: background 0.15s; }
-  .sentence:hover { background: var(--accent-light); }
-  .sentence.active { background: #bfdbfe; color: #1e3a8a; }
-  .sentence.done { color: var(--text-muted); }
+  .setting-val {
+    font-size: 0.72rem;
+    color: var(--text2);
+    text-align: right;
+    margin-top: 2px;
+  }
 
-  .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .row + .row { margin-top: 10px; }
+  /* Speaking progress */
+  .progress-wrap {
+    display: none;
+    margin-top: 0.9rem;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+  }
 
-  button {
+  .progress-wrap.show { display: block; }
+
+  .progress-label {
+    font-size: 0.73rem;
+    color: var(--text2);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-bar-bg {
+    background: var(--surface);
+    border-radius: 4px;
+    height: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .speaking-word {
+    font-size: 0.8rem;
+    color: var(--accent2);
+    margin-top: 6px;
+    min-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Voice select */
+  select#voiceSelect {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23606070' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+
+  .voice-select-label {
+    font-size: 0.72rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.9rem;
+    display: block;
+  }
+
+  /* Char count */
+  .char-count {
+    font-size: 0.72rem;
+    color: var(--text3);
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  /* Status pill */
+  .status-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border-mid);
-    background: transparent;
-    color: var(--text);
-    font-size: 14px;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.12s, transform 0.1s, border-color 0.12s;
+    font-size: 0.72rem;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid;
     font-weight: 500;
-    white-space: nowrap;
-  }
-  button:hover { background: var(--bg); }
-  button:active { transform: scale(0.97); }
-  button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button.primary:hover { background: #1d4ed8; }
-  button.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
-  button.success-btn { background: var(--success-bg); border-color: var(--success); color: var(--success); }
-  button.sm { padding: 5px 10px; font-size: 13px; }
-
-  select {
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 8px 10px;
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--text);
-    background: var(--bg);
-    flex: 1;
-    min-width: 160px;
-    cursor: pointer;
-  }
-  select:focus { outline: none; border-color: var(--accent); }
-
-  .slider-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
-  .slider-label {
-    font-size: 13px; color: var(--text-muted);
-    min-width: 96px; display: flex; align-items: center; gap: 5px;
-  }
-  input[type=range] { flex: 1; accent-color: var(--accent); height: 4px; cursor: pointer; }
-  .slider-val { font-size: 13px; font-weight: 600; min-width: 36px; text-align: right; color: var(--text); }
-
-  .badge {
-    font-size: 12px; padding: 3px 10px; border-radius: 20px;
-    border: 0.5px solid var(--border); color: var(--text-muted);
-    background: var(--bg); font-weight: 500;
-  }
-  .badge.rec { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
-  .badge.ok { background: var(--success-bg); color: var(--success); border-color: var(--success); }
-  .badge.warn { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
-
-  .progress-wrap {
-    background: var(--bg); border-radius: 4px; height: 5px;
-    width: 100%; margin-top: 12px; overflow: hidden; border: 0.5px solid var(--border);
-  }
-  .progress-bar { height: 5px; background: var(--accent); border-radius: 4px; transition: width 0.3s; width: 0%; }
-
-  .status {
-    font-size: 13px; color: var(--text-muted); margin-top: 8px;
-    min-height: 20px; display: flex; align-items: center; gap: 6px;
   }
 
-  hr { border: none; border-top: 0.5px solid var(--border); margin: 12px 0; }
+  .pill-idle { color: var(--text3); border-color: var(--border); }
+  .pill-speaking { color: var(--accent2); border-color: rgba(160,150,240,0.3); background: rgba(124,111,222,0.08); }
+  .pill-ready { color: var(--green); border-color: rgba(78,201,148,0.3); background: rgba(78,201,148,0.08); }
 
-  .info-box {
-    background: var(--accent-light);
-    border: 0.5px solid var(--accent-border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--text);
-    line-height: 1.6;
-    margin-bottom: 12px;
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
   }
 
-  .warn-box {
-    background: var(--warning-bg);
-    border: 0.5px solid var(--warning);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--text);
-    line-height: 1.6;
-    margin-bottom: 12px;
+  .dot.blink { animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* No speech support */
+  .no-support {
+    background: rgba(224,85,85,0.1);
+    border: 1px solid rgba(224,85,85,0.25);
+    border-radius: 10px;
+    padding: 1rem;
+    font-size: 0.83rem;
+    color: #f08080;
+    display: none;
   }
 
-  .voice-engine-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-  .engine-btn {
-    flex: 1;
-    padding: 10px;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--border);
-    background: var(--bg);
-    cursor: pointer;
-    text-align: center;
-    font-size: 13px;
-    font-family: inherit;
-    color: var(--text-muted);
-    transition: all 0.15s;
-  }
-  .engine-btn.active {
-    border-color: var(--accent);
-    background: var(--accent-light);
-    color: var(--text);
-    font-weight: 600;
-  }
-  .engine-btn .engine-icon { font-size: 20px; display: block; margin-bottom: 4px; }
-  .engine-btn .engine-name { font-weight: 600; }
-  .engine-btn .engine-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .no-support.show { display: block; }
 
-  .voice-card {
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    margin-bottom: 6px;
-  }
-  .voice-card:hover { border-color: var(--accent); background: var(--accent-light); }
-  .voice-card.selected { border-color: var(--accent); background: var(--accent-light); }
-  .voice-card .vc-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: var(--accent); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
-  }
-  .voice-card .vc-avatar.cloned { background: var(--success); }
-  .voice-card .vc-info { flex: 1; min-width: 0; }
-  .voice-card .vc-name { font-weight: 600; font-size: 14px; }
-  .voice-card .vc-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-  .rec-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 0; border-bottom: 0.5px solid var(--border);
-  }
-  .rec-item:last-child { border-bottom: none; }
-  audio { height: 32px; flex: 1; min-width: 0; }
-
-  .step-row {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 10px 0; border-bottom: 0.5px solid var(--border);
-    font-size: 14px; line-height: 1.6;
-  }
-  .step-row:last-child { border-bottom: none; }
-  .step-num {
-    width: 24px; height: 24px; border-radius: 50%;
-    background: var(--accent); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
-  }
-  .step-num.done { background: var(--success); }
-
-  .clone-status {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 12px; border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 500; margin-top: 10px;
-  }
-  .clone-status.idle { background: var(--bg); color: var(--text-muted); border: 0.5px solid var(--border); }
-  .clone-status.loading { background: var(--warning-bg); color: var(--warning); border: 0.5px solid var(--warning); }
-  .clone-status.success { background: var(--success-bg); color: var(--success); border: 0.5px solid var(--success); }
-  .clone-status.error { background: var(--danger-bg); color: var(--danger); border: 0.5px solid var(--danger); }
-
-  .spin { animation: spin 1s linear infinite; display: inline-block; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .field-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-  .field-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
-
-  @media (max-width: 500px) {
-    .slider-label { min-width: 70px; font-size: 12px; }
-    .container { padding: 14px 10px 40px; }
-    .voice-engine-row { flex-direction: column; }
+  /* Tooltip */
+  .tip {
+    font-size: 0.73rem;
+    color: var(--text3);
+    margin-top: 0.4rem;
+    line-height: 1.5;
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo"><i class="ti ti-volume"></i></div>
-  <h1>Đọc văn bản tiếng Việt</h1>
-  <span id="headerBadge">Text to Speech</span>
-</header>
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+        <path d="M19 10a7 7 0 0 1-14 0M12 19v3M8 22h8"/>
+      </svg>
+    </div>
+    <h1>AI Voice Reader</h1>
+  </div>
+  <p class="subtitle">Ghi âm giọng đọc — dùng lại để đọc văn bản không giới hạn</p>
+</div>
 
 <div class="container">
 
-  <div class="tab-row">
-    <button class="tab active" onclick="switchTab('read')" id="tab-read">
-      <i class="ti ti-file-text"></i> Đọc văn bản
-    </button>
-    <button class="tab" onclick="switchTab('voice')" id="tab-voice">
-      <i class="ti ti-microphone"></i> Nhân bản giọng nói
-    </button>
-    <button class="tab" onclick="switchTab('settings')" id="tab-settings">
-      <i class="ti ti-settings"></i> Cài đặt
-    </button>
+  <!-- No support warning -->
+  <div class="no-support" id="noSupport">
+    ⚠️ Trình duyệt của bạn không hỗ trợ Web Speech API. Hãy dùng Chrome hoặc Edge để có trải nghiệm tốt nhất.
   </div>
 
-  <!-- ====== PANEL: ĐỌC VĂN BẢN ====== -->
-  <div id="panel-read">
-
-    <!-- Engine selector -->
-    <div class="card">
-      <div class="card-title"><i class="ti ti-cpu"></i> Nguồn giọng đọc</div>
-      <div class="voice-engine-row">
-        <button class="engine-btn active" id="eng-browser" onclick="setEngine('browser')">
-          <span class="engine-icon">🌐</span>
-          <span class="engine-name">Trình duyệt</span>
-          <div class="engine-desc">Nhanh, miễn phí<br>Offline</div>
-        </button>
-        <button class="engine-btn" id="eng-elevenlabs" onclick="setEngine('elevenlabs')">
-          <span class="engine-icon">🎙️</span>
-          <span class="engine-name">ElevenLabs</span>
-          <div class="engine-desc">Chất lượng cao<br>Cần API key</div>
-        </button>
-      </div>
-
-      <!-- Browser voice settings -->
-      <div id="section-browser-settings">
-        <div class="slider-row">
-          <span class="slider-label"><i class="ti ti-user-circle"></i> Giọng đọc</span>
-          <select id="voiceSelect"><option value="">Đang tải giọng...</option></select>
-        </div>
-        <hr>
-        <div class="slider-row">
-          <span class="slider-label"><i class="ti ti-player-play"></i> Tốc độ</span>
-          <input type="range" min="0.5" max="2" step="0.1" value="1" id="rateSlider"
-            oninput="document.getElementById('rateVal').textContent=parseFloat(this.value).toFixed(1)+'x'">
-          <span class="slider-val" id="rateVal">1.0x</span>
-        </div>
-        <div class="slider-row">
-          <span class="slider-label"><i class="ti ti-wave-sine"></i> Cao độ</span>
-          <input type="range" min="0.5" max="2" step="0.1" value="1" id="pitchSlider"
-            oninput="document.getElementById('pitchVal').textContent=parseFloat(this.value).toFixed(1)">
-          <span class="slider-val" id="pitchVal">1.0</span>
-        </div>
-        <div class="slider-row">
-          <span class="slider-label"><i class="ti ti-volume"></i> Âm lượng</span>
-          <input type="range" min="0" max="1" step="0.05" value="1" id="volSlider"
-            oninput="document.getElementById('volVal').textContent=Math.round(this.value*100)+'%'">
-          <span class="slider-val" id="volVal">100%</span>
-        </div>
-      </div>
-
-      <!-- ElevenLabs voice settings -->
-      <div id="section-el-settings" style="display:none;">
-        <div id="el-voice-list">
-          <div style="font-size:13px;color:var(--text-muted);">
-            <i class="ti ti-info-circle"></i>
-            Chọn giọng từ danh sách bên dưới. Giọng nhân bản của bạn sẽ hiện ở đầu sau khi tạo.
-          </div>
-        </div>
-        <div id="el-no-key-warn" class="warn-box" style="margin-top:10px;display:none;">
-          <i class="ti ti-alert-triangle"></i>
-          <strong>Chưa có API key.</strong> Vào tab <strong>Cài đặt</strong> để nhập ElevenLabs API key.
-        </div>
-        <div class="slider-row" style="margin-top:10px;">
-          <span class="slider-label"><i class="ti ti-player-play"></i> Tốc độ</span>
-          <input type="range" min="0.7" max="1.2" step="0.05" value="1" id="elRateSlider"
-            oninput="document.getElementById('elRateVal').textContent=parseFloat(this.value).toFixed(2)+'x'">
-          <span class="slider-val" id="elRateVal">1.00x</span>
-        </div>
-      </div>
+  <!-- STEP 1: Record voice sample -->
+  <div class="card">
+    <div class="card-title">
+      <div class="step-badge active" id="badge1">1</div>
+      Ghi âm giọng của bạn
     </div>
 
-    <div class="card">
-      <div class="card-title"><i class="ti ti-pencil"></i> Nhập văn bản</div>
-      <textarea id="textInput" placeholder="Dán hoặc nhập văn bản vào đây để đọc thành giọng nói..."></textarea>
-      <div class="row" style="margin-top:10px;">
-        <button class="sm" onclick="pasteText()"><i class="ti ti-clipboard"></i> Dán</button>
-        <button class="sm" onclick="clearText()"><i class="ti ti-trash"></i> Xóa</button>
-        <span class="badge" id="charCount">0 ký tự · 0 câu</span>
-      </div>
+    <div class="waveform-wrap">
+      <span class="waveform-idle" id="waveIdle">Nhấn nút ghi âm để bắt đầu</span>
+      <canvas id="waveCanvas"></canvas>
     </div>
 
-    <div class="card">
-      <div class="card-title"><i class="ti ti-player-play"></i> Điều khiển phát</div>
-      <div class="row">
-        <button class="primary" id="btnPlay" onclick="startReading()">
-          <i class="ti ti-player-play"></i> Đọc
-        </button>
-        <button id="btnPause" onclick="togglePause()" disabled>
-          <i class="ti ti-player-pause"></i> Tạm dừng
-        </button>
-        <button class="danger" id="btnStop" onclick="stopReading()" disabled>
-          <i class="ti ti-player-stop"></i> Dừng
-        </button>
+    <div class="rec-controls">
+      <button class="btn-record" id="btnRecord" title="Ghi âm">
+        <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+          <path d="M19 10a7 7 0 0 1-14 0M12 19v3M8 22h8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="rec-info">
+        <div class="rec-status" id="recStatus">Sẵn sàng ghi âm</div>
+        <div class="rec-hint" id="recHint">Đọc bất kỳ câu nào ít nhất 5 giây để phân tích giọng</div>
       </div>
-      <div class="progress-wrap">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
-      <div class="status" id="statusText">
-        <i class="ti ti-circle-dot"></i> Sẵn sàng
-      </div>
+      <div class="timer" id="timer">0:00</div>
     </div>
 
-    <div class="card">
-      <div class="card-title"><i class="ti ti-highlight"></i> Văn bản – highlight từng câu</div>
-      <div class="highlight-box" id="highlightArea">
-        <span style="color:var(--text-muted);font-size:14px;">Nhập văn bản phía trên rồi nhấn <strong>Đọc</strong> để bắt đầu.</span>
-      </div>
+    <div class="playback-bar" id="playbackBar">
+      <button class="btn-play-sample" id="btnPlaySample" title="Nghe lại">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <span class="pb-label">Mẫu giọng đã ghi</span>
+      <span class="pb-duration" id="sampleDuration">--</span>
+      <button class="btn-rerecord" id="btnRerecord">↺ Ghi lại</button>
     </div>
 
+    <div class="voice-badge" id="voiceBadge">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5"/></svg>
+      Giọng đã được phân tích và sẵn sàng sử dụng
+    </div>
   </div>
 
-  <!-- ====== PANEL: NHÂN BẢN GIỌNG NÓI ====== -->
-  <div id="panel-voice" style="display:none;">
+  <!-- STEP 2: Voice settings & TTS -->
+  <div class="card">
+    <div class="card-title">
+      <div class="step-badge" id="badge2">2</div>
+      Nhập văn bản & phát giọng
+    </div>
 
-    <div class="card">
-      <div class="card-title"><i class="ti ti-list-numbers"></i> Cách hoạt động</div>
-      <div id="steps-container">
-        <div class="step-row">
-          <div class="step-num" id="step1num">1</div>
-          <div>
-            <strong>Nhập API key ElevenLabs</strong> trong tab <strong>Cài đặt</strong>.<br>
-            <span style="color:var(--text-muted);font-size:13px;">Đăng ký miễn phí tại <a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a> → Profile → API Keys</span>
-          </div>
-        </div>
-        <div class="step-row">
-          <div class="step-num" id="step2num">2</div>
-          <div>
-            <strong>Ghi âm giọng nói của bạn</strong> (tối thiểu 1 phút, nói rõ ràng).<br>
-            <span style="color:var(--text-muted);font-size:13px;">Chất lượng ghi âm càng cao → nhân bản càng giống.</span>
-          </div>
-        </div>
-        <div class="step-row">
-          <div class="step-num" id="step3num">3</div>
-          <div>
-            <strong>Nhân bản giọng nói</strong> – tải lên ElevenLabs và tạo voice ID.<br>
-            <span style="color:var(--text-muted);font-size:13px;">Chỉ mất ~30 giây.</span>
-          </div>
-        </div>
-        <div class="step-row" style="border-bottom:none;">
-          <div class="step-num" id="step4num">4</div>
-          <div>
-            <strong>Quay lại tab Đọc văn bản</strong>, chọn ElevenLabs → giọng của bạn sẽ xuất hiện đầu danh sách.<br>
-            <span style="color:var(--text-muted);font-size:13px;">Nhấn Đọc để nghe giọng mình đọc văn bản!</span>
-          </div>
-        </div>
+    <div class="no-support" id="noSpeechSynth" style="margin-bottom:0.75rem;">
+      Trình duyệt không hỗ trợ Web Speech Synthesis. Vui lòng dùng Chrome.
+    </div>
+
+    <textarea id="inputText" placeholder="Nhập hoặc dán văn bản bất kỳ vào đây...&#10;&#10;Không giới hạn độ dài — AI sẽ đọc toàn bộ bằng giọng bạn đã ghi âm." maxlength="50000"></textarea>
+    <div class="char-count"><span id="charCount">0</span> / 50,000 ký tự</div>
+
+    <span class="voice-select-label">Giọng đọc hệ thống</span>
+    <select id="voiceSelect"></select>
+    <p class="tip">💡 Chọn giọng phù hợp ngôn ngữ văn bản. Sau khi ghi âm, hệ thống sẽ tự chọn giọng gần nhất với mẫu của bạn.</p>
+
+    <div class="settings-row">
+      <div class="setting-group">
+        <label>Tốc độ</label>
+        <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="1">
+        <div class="setting-val" id="rateVal">1.0×</div>
+      </div>
+      <div class="setting-group">
+        <label>Cao độ</label>
+        <input type="range" id="pitchSlider" min="0.5" max="2" step="0.05" value="1">
+        <div class="setting-val" id="pitchVal">1.0</div>
+      </div>
+      <div class="setting-group">
+        <label>Âm lượng</label>
+        <input type="range" id="volSlider" min="0" max="1" step="0.05" value="1">
+        <div class="setting-val" id="volVal">100%</div>
       </div>
     </div>
 
-    <!-- Step 1: Record -->
-    <div class="card">
-      <div class="card-title"><i class="ti ti-microphone"></i> Bước 1 – Ghi âm giọng nói</div>
-      <div class="info-box">
-        Đọc to, rõ ràng khoảng <strong>1–3 phút</strong>. Có thể đọc bất kỳ văn bản nào. Nhiều mẫu → kết quả tốt hơn.
-      </div>
-      <div class="row">
-        <button id="btnRecord" onclick="toggleRecord()">
-          <i class="ti ti-microphone"></i> Bắt đầu ghi âm
-        </button>
-        <span class="badge" id="recBadge">Chưa ghi</span>
-        <span id="recTimer" style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums;"></span>
-      </div>
-      <div id="recordingsList" style="margin-top:14px;color:var(--text-muted);font-size:14px;">
-        Chưa có bản ghi âm nào.
-      </div>
+    <div class="tts-controls">
+      <button class="btn-speak" id="btnSpeak" disabled>
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+        Đọc văn bản
+      </button>
+      <button class="btn-stop" id="btnStop">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        Dừng
+      </button>
     </div>
 
-    <!-- Step 2: Clone -->
-    <div class="card">
-      <div class="card-title"><i class="ti ti-dna"></i> Bước 2 – Nhân bản giọng nói</div>
-
-      <div id="clone-no-key" class="warn-box">
-        <i class="ti ti-alert-triangle"></i>
-        Cần nhập <strong>ElevenLabs API key</strong> trong tab <strong>Cài đặt</strong> trước.
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label">
+        <span>Đang đọc...</span>
+        <span class="status-pill pill-speaking"><span class="dot blink"></span> Speaking</span>
       </div>
-
-      <div id="clone-no-rec" class="warn-box" style="display:none;">
-        <i class="ti ti-alert-triangle"></i>
-        Cần ghi âm ít nhất 1 bản ở bước trên trước.
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
       </div>
-
-      <div id="clone-form" style="display:none;">
-        <div class="field-row">
-          <label class="field-label">Tên giọng nói (ví dụ: Giọng của Minh)</label>
-          <input type="text" id="cloneVoiceName" placeholder="Giọng của tôi" value="Giọng của tôi">
-        </div>
-        <div class="field-row">
-          <label class="field-label">Mô tả (không bắt buộc)</label>
-          <input type="text" id="cloneVoiceDesc" placeholder="Giọng nam/nữ, trung niên, thân thiện...">
-        </div>
-        <button class="primary" id="btnClone" onclick="cloneVoice()" style="margin-top:6px;">
-          <i class="ti ti-dna"></i> Tạo giọng nhân bản
-        </button>
-      </div>
-
-      <div id="cloneStatusBox" class="clone-status idle" style="display:none;"></div>
-
-      <!-- Cloned voices list -->
-      <div id="cloned-voices-section" style="display:none;margin-top:14px;">
-        <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:8px;">
-          Giọng nhân bản đã tạo
-        </div>
-        <div id="cloned-voices-list"></div>
-      </div>
+      <div class="speaking-word" id="speakingWord"></div>
     </div>
-
   </div>
 
-  <!-- ====== PANEL: CÀI ĐẶT ====== -->
-  <div id="panel-settings" style="display:none;">
-
-    <div class="card">
-      <div class="card-title"><i class="ti ti-key"></i> ElevenLabs API Key</div>
-      <div class="info-box">
-        Đăng ký tài khoản miễn phí tại <a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a> → vào <strong>Profile Settings → API Keys</strong> → sao chép key dán vào đây.
-      </div>
-      <div class="field-row">
-        <label class="field-label">API Key</label>
-        <div style="display:flex;gap:8px;">
-          <input type="password" id="apiKeyInput" placeholder="sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-          <button onclick="toggleApiKeyVisible()" id="btnShowKey" style="flex-shrink:0;">
-            <i class="ti ti-eye"></i>
-          </button>
-        </div>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <button class="primary" onclick="saveApiKey()"><i class="ti ti-device-floppy"></i> Lưu</button>
-        <button onclick="testApiKey()"><i class="ti ti-plug"></i> Kiểm tra kết nối</button>
-        <button class="danger sm" onclick="clearApiKey()"><i class="ti ti-trash"></i> Xóa</button>
-      </div>
-      <div class="status" id="apiKeyStatus"></div>
+  <!-- Info card -->
+  <div class="card" style="padding: 1rem 1.5rem;">
+    <div style="display:flex; align-items:flex-start; gap:10px; font-size:0.78rem; color:var(--text2); line-height:1.6;">
+      <span style="font-size:1.1rem; flex-shrink:0;">ℹ️</span>
+      <span>Ứng dụng dùng <strong style="color:var(--text)">Web Speech API</strong> của trình duyệt. Giọng ghi âm được phân tích để tìm giọng hệ thống phù hợp nhất. Hoạt động tốt nhất trên <strong style="color:var(--text)">Chrome / Edge</strong> với nhiều giọng tích hợp. Văn bản không giới hạn — ứng dụng sẽ tự động tách đoạn dài để phát liên tục.</span>
     </div>
-
-    <div class="card">
-      <div class="card-title"><i class="ti ti-device-mobile"></i> Cài thêm giọng tiếng Việt (trình duyệt)</div>
-      <div style="font-size:14px;line-height:1.8;color:var(--text);">
-        <p>🪟 <strong>Windows:</strong> Cài đặt → Thời gian &amp; Ngôn ngữ → Giọng nói → Thêm giọng → chọn <em>Tiếng Việt</em></p>
-        <p>🍎 <strong>macOS:</strong> System Settings → Accessibility → Spoken Content → System Voice</p>
-        <p>📱 <strong>iOS:</strong> Cài đặt → Trợ năng → Nội dung đọc → Giọng nói</p>
-        <p>🤖 <strong>Android:</strong> Cài đặt → Trợ năng → Chuyển văn bản thành giọng nói</p>
-      </div>
-    </div>
-
   </div>
 
 </div>
 
 <script>
-// ====================== STATE ======================
-let voices = [];
-let sentences = [];
-let currentIdx = 0;
-let isPaused = false;
-let isReading = false;
-let utterance = null;
+const btnRecord = document.getElementById('btnRecord');
+const btnPlaySample = document.getElementById('btnPlaySample');
+const btnRerecord = document.getElementById('btnRerecord');
+const btnSpeak = document.getElementById('btnSpeak');
+const btnStop = document.getElementById('btnStop');
+const recStatus = document.getElementById('recStatus');
+const recHint = document.getElementById('recHint');
+const timer = document.getElementById('timer');
+const waveIdle = document.getElementById('waveIdle');
+const waveCanvas = document.getElementById('waveCanvas');
+const playbackBar = document.getElementById('playbackBar');
+const voiceBadge = document.getElementById('voiceBadge');
+const inputText = document.getElementById('inputText');
+const charCount = document.getElementById('charCount');
+const voiceSelect = document.getElementById('voiceSelect');
+const rateSlider = document.getElementById('rateSlider');
+const pitchSlider = document.getElementById('pitchSlider');
+const volSlider = document.getElementById('volSlider');
+const rateVal = document.getElementById('rateVal');
+const pitchVal = document.getElementById('pitchVal');
+const volVal = document.getElementById('volVal');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const speakingWord = document.getElementById('speakingWord');
+const badge1 = document.getElementById('badge1');
+const badge2 = document.getElementById('badge2');
+const sampleDuration = document.getElementById('sampleDuration');
+
 let mediaRecorder = null;
-let recordedChunks = [];
-let recordings = []; // {url, blob, duration}
-let recInterval = null;
-let recSeconds = 0;
-let currentEngine = 'browser'; // 'browser' | 'elevenlabs'
-let elVoices = []; // ElevenLabs voices from API
-let clonedVoices = []; // locally tracked cloned voices
-let selectedElVoiceId = null;
-let elAudioQueue = [];
-let elCurrentAudio = null;
-let apiKey = localStorage.getItem('el_api_key') || '';
+let audioChunks = [];
+let recordedBlob = null;
+let audioContext = null;
+let analyser = null;
+let animFrameId = null;
+let startTime = null;
+let timerInterval = null;
+let audioPlayer = null;
+let voices = [];
+let utterances = [];
+let currentUtterance = 0;
+let isSpeaking = false;
+let totalChunks = 0;
 
-// ====================== TAB ======================
-function switchTab(t) {
-  ['read','voice','settings'].forEach(p => {
-    document.getElementById('panel-' + p).style.display = 'none';
-    document.getElementById('tab-' + p).className = 'tab';
-  });
-  document.getElementById('panel-' + t).style.display = 'block';
-  document.getElementById('tab-' + t).className = 'tab active';
-  if (t === 'voice') refreshVoicePanel();
-  if (t === 'settings') {
-    document.getElementById('apiKeyInput').value = apiKey;
-  }
+// Check support
+const hasSpeechSynth = 'speechSynthesis' in window;
+const hasMediaRecorder = 'MediaRecorder' in window;
+
+if (!hasMediaRecorder && !hasSpeechSynth) {
+  document.getElementById('noSupport').classList.add('show');
+}
+if (!hasSpeechSynth) {
+  document.getElementById('noSpeechSynth').classList.add('show');
 }
 
-// ====================== ENGINE ======================
-function setEngine(eng) {
-  currentEngine = eng;
-  document.getElementById('eng-browser').className = 'engine-btn' + (eng === 'browser' ? ' active' : '');
-  document.getElementById('eng-elevenlabs').className = 'engine-btn' + (eng === 'elevenlabs' ? ' active' : '');
-  document.getElementById('section-browser-settings').style.display = eng === 'browser' ? 'block' : 'none';
-  document.getElementById('section-el-settings').style.display = eng === 'elevenlabs' ? 'block' : 'none';
-  if (eng === 'elevenlabs') {
-    if (!apiKey) {
-      document.getElementById('el-no-key-warn').style.display = 'block';
-    } else {
-      document.getElementById('el-no-key-warn').style.display = 'none';
-      loadElVoices();
-    }
-  }
-  document.getElementById('headerBadge').textContent = eng === 'elevenlabs' ? 'ElevenLabs TTS' : 'Text to Speech';
-}
-
-// ====================== BROWSER VOICES ======================
+// Load voices
 function loadVoices() {
-  voices = window.speechSynthesis.getVoices();
-  const sel = document.getElementById('voiceSelect');
-  sel.innerHTML = '';
-  const vi = voices.filter(v => v.lang && v.lang.startsWith('vi'));
-  const others = voices.filter(v => !v.lang.startsWith('vi'));
-  if (vi.length) {
-    const g = document.createElement('optgroup');
-    g.label = '🇻🇳 Tiếng Việt';
-    vi.forEach(v => {
-      const o = document.createElement('option');
-      o.value = v.name;
-      o.textContent = v.name + ' (' + v.lang + ')';
-      g.appendChild(o);
-    });
-    sel.appendChild(g);
-  }
-  if (others.length) {
-    const g2 = document.createElement('optgroup');
-    g2.label = 'Giọng khác';
-    others.slice(0, 25).forEach(v => {
-      const o = document.createElement('option');
-      o.value = v.name;
-      o.textContent = v.name + ' (' + v.lang + ')';
-      g2.appendChild(o);
-    });
-    sel.appendChild(g2);
-  }
-  if (!sel.options.length) sel.innerHTML = '<option value="">Không tìm thấy giọng</option>';
-}
-window.speechSynthesis.onvoiceschanged = loadVoices;
-loadVoices();
-setTimeout(loadVoices, 500);
-
-// ====================== ELEVENLABS VOICES ======================
-async function loadElVoices() {
-  if (!apiKey) return;
-  const container = document.getElementById('el-voice-list');
-  container.innerHTML = '<div style="font-size:13px;color:var(--text-muted);"><span class="spin"><i class="ti ti-loader"></i></span> Đang tải danh sách giọng...</div>';
-  try {
-    const res = await fetch('https://api.elevenlabs.io/v1/voices', {
-      headers: { 'xi-api-key': apiKey }
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    elVoices = data.voices || [];
-    renderElVoiceList();
-  } catch(e) {
-    container.innerHTML = '<div style="font-size:13px;color:var(--danger);">Lỗi tải giọng: ' + e.message + '. Kiểm tra API key.</div>';
-  }
-}
-
-function renderElVoiceList() {
-  const container = document.getElementById('el-voice-list');
-  if (!elVoices.length) {
-    container.innerHTML = '<div style="font-size:13px;color:var(--text-muted);">Không tìm thấy giọng nào.</div>';
+  voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  voiceSelect.innerHTML = '';
+  if (voices.length === 0) {
+    const opt = document.createElement('option');
+    opt.textContent = 'Chưa tải được giọng — thử lại sau';
+    voiceSelect.appendChild(opt);
     return;
   }
-
-  // Sort: cloned voices first
-  const clonedIds = clonedVoices.map(v => v.voice_id);
-  const sorted = [
-    ...elVoices.filter(v => clonedIds.includes(v.voice_id)),
-    ...elVoices.filter(v => !clonedIds.includes(v.voice_id))
-  ];
-
-  if (!selectedElVoiceId && sorted.length) selectedElVoiceId = sorted[0].voice_id;
-
-  container.innerHTML = '';
-  sorted.forEach(v => {
-    const isCloned = clonedIds.includes(v.voice_id);
-    const isSelected = v.voice_id === selectedElVoiceId;
-    const div = document.createElement('div');
-    div.className = 'voice-card' + (isSelected ? ' selected' : '');
-    div.onclick = () => selectElVoice(v.voice_id);
-    div.innerHTML = `
-      <div class="vc-avatar ${isCloned ? 'cloned' : ''}">
-        <i class="ti ti-${isCloned ? 'dna' : 'user-circle'}"></i>
-      </div>
-      <div class="vc-info">
-        <div class="vc-name">${v.name} ${isCloned ? '<span class="badge ok" style="font-size:11px;">Giọng của bạn</span>' : ''}</div>
-        <div class="vc-meta">${v.category || 'premade'} · ${v.labels && v.labels.language ? v.labels.language : 'en'}</div>
-      </div>
-      ${isSelected ? '<i class="ti ti-check" style="color:var(--accent);font-size:18px;"></i>' : ''}
-    `;
-    container.appendChild(div);
+  voices.forEach((v, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${v.name} (${v.lang})`;
+    if (v.lang.startsWith('vi')) opt.textContent = '🇻🇳 ' + opt.textContent;
+    else if (v.lang.startsWith('en')) opt.textContent = '🇺🇸 ' + opt.textContent;
+    voiceSelect.appendChild(opt);
   });
+  // default: prefer vi or en
+  const viIdx = voices.findIndex(v => v.lang.startsWith('vi'));
+  if (viIdx >= 0) voiceSelect.value = viIdx;
 }
 
-function selectElVoice(voiceId) {
-  selectedElVoiceId = voiceId;
-  renderElVoiceList();
+if (hasSpeechSynth) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
-// ====================== TEXT INPUT ======================
-document.getElementById('textInput').addEventListener('input', function () {
-  const t = this.value.trim();
-  const chars = this.value.length;
-  const sents = t ? splitSentences(t).length : 0;
-  document.getElementById('charCount').textContent = chars + ' ký tự · ' + sents + ' câu';
-});
+// Sliders
+rateSlider.oninput = () => { rateVal.textContent = parseFloat(rateSlider.value).toFixed(2).replace(/\.?0+$/, '') + '×'; }
+pitchSlider.oninput = () => { pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2).replace(/\.?0+$/, ''); }
+volSlider.oninput = () => { volVal.textContent = Math.round(volSlider.value * 100) + '%'; }
 
-function clearText() {
-  stopReading();
-  document.getElementById('textInput').value = '';
-  document.getElementById('charCount').textContent = '0 ký tự · 0 câu';
-  document.getElementById('highlightArea').innerHTML =
-    '<span style="color:var(--text-muted);font-size:14px;">Nhập văn bản phía trên rồi nhấn <strong>Đọc</strong> để bắt đầu.</span>';
-}
+// Char count
+inputText.oninput = () => {
+  charCount.textContent = inputText.value.length.toLocaleString();
+  btnSpeak.disabled = !inputText.value.trim() || !hasSpeechSynth;
+};
 
-async function pasteText() {
-  try {
-    const t = await navigator.clipboard.readText();
-    document.getElementById('textInput').value = t;
-    document.getElementById('textInput').dispatchEvent(new Event('input'));
-  } catch (e) {
-    alert('Không thể truy cập clipboard. Vui lòng dán thủ công (Ctrl+V / Cmd+V).');
-  }
-}
+// Waveform drawing
+function drawWave(analyser) {
+  const ctx = waveCanvas.getContext('2d');
+  const W = waveCanvas.width;
+  const H = waveCanvas.height;
+  const bufLen = analyser.frequencyBinCount;
+  const dataArr = new Uint8Array(bufLen);
 
-// ====================== SENTENCES ======================
-function splitSentences(text) {
-  const parts = text.match(/[^.!?\n]+[.!?\n]?/g) || [text];
-  return parts.map(s => s.trim()).filter(s => s.length > 0);
-}
-
-function buildHighlight() {
-  const area = document.getElementById('highlightArea');
-  area.innerHTML = '';
-  sentences.forEach((s, i) => {
-    const span = document.createElement('span');
-    span.className = 'sentence';
-    span.id = 'sent-' + i;
-    span.textContent = s + ' ';
-    span.onclick = () => jumpTo(i);
-    span.title = 'Nhấn để đọc từ đây';
-    area.appendChild(span);
-  });
-}
-
-function highlightSentence(idx) {
-  document.querySelectorAll('.sentence').forEach((el, i) => {
-    el.className = 'sentence' + (i < idx ? ' done' : i === idx ? ' active' : '');
-  });
-  const el = document.getElementById('sent-' + idx);
-  if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  const pct = sentences.length > 1 ? (idx / (sentences.length - 1)) * 100 : 0;
-  document.getElementById('progressBar').style.width = Math.round(pct) + '%';
-}
-
-function jumpTo(idx) {
-  if (!isReading) return;
-  if (currentEngine === 'elevenlabs') {
-    stopReading();
-    setTimeout(() => { startReadingFromIdx(idx); }, 100);
-  } else {
-    window.speechSynthesis.cancel();
-    currentIdx = idx;
-    speakFrom(idx);
-  }
-}
-
-// ====================== PLAYBACK: MAIN ======================
-function startReading() {
-  startReadingFromIdx(0);
-}
-
-function startReadingFromIdx(startIdx) {
-  const text = document.getElementById('textInput').value.trim();
-  if (!text) { setStatus('<i class="ti ti-alert-circle"></i> Chưa có văn bản để đọc.'); return; }
-  if (currentEngine === 'elevenlabs' && !apiKey) {
-    setStatus('<i class="ti ti-alert-circle"></i> Chưa có API key ElevenLabs. Vào Cài đặt để nhập.');
-    return;
-  }
-  if (currentEngine === 'elevenlabs' && !selectedElVoiceId) {
-    setStatus('<i class="ti ti-alert-circle"></i> Chưa chọn giọng ElevenLabs.');
-    return;
-  }
-  stopReading();
-  sentences = splitSentences(text);
-  currentIdx = startIdx;
-  buildHighlight();
-  isReading = true;
-  isPaused = false;
-  document.getElementById('btnPlay').disabled = true;
-  document.getElementById('btnPause').disabled = false;
-  document.getElementById('btnStop').disabled = false;
-
-  if (currentEngine === 'elevenlabs') {
-    speakElFrom(startIdx);
-  } else {
-    speakFrom(startIdx);
-  }
-}
-
-// ====================== PLAYBACK: BROWSER ======================
-function speakFrom(idx) {
-  if (idx >= sentences.length) { finishReading(); return; }
-  currentIdx = idx;
-  highlightSentence(idx);
-  setStatus('<i class="ti ti-player-play"></i> Đang đọc câu ' + (idx + 1) + '/' + sentences.length + '…');
-  utterance = new SpeechSynthesisUtterance(sentences[idx]);
-  const selVoice = document.getElementById('voiceSelect').value;
-  const v = voices.find(x => x.name === selVoice);
-  if (v) utterance.voice = v;
-  utterance.rate = parseFloat(document.getElementById('rateSlider').value);
-  utterance.pitch = parseFloat(document.getElementById('pitchSlider').value);
-  utterance.volume = parseFloat(document.getElementById('volSlider').value);
-  utterance.onend = () => { if (isReading && !isPaused) speakFrom(idx + 1); };
-  utterance.onerror = (e) => { if (e.error !== 'interrupted') setStatus('<i class="ti ti-alert-circle"></i> Lỗi: ' + e.error); };
-  window.speechSynthesis.speak(utterance);
-}
-
-// ====================== PLAYBACK: ELEVENLABS ======================
-async function speakElFrom(idx) {
-  if (!isReading || idx >= sentences.length) { finishReading(); return; }
-  currentIdx = idx;
-  highlightSentence(idx);
-  setStatus('<i class="ti ti-loader spin"></i> Đang tổng hợp câu ' + (idx + 1) + '/' + sentences.length + '…');
-
-  try {
-    const speedVal = parseFloat(document.getElementById('elRateSlider').value);
-    const res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + selectedElVoiceId, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'audio/mpeg'
-      },
-      body: JSON.stringify({
-        text: sentences[idx],
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          speed: speedVal
-        }
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail?.message || 'HTTP ' + res.status);
+  function draw() {
+    animFrameId = requestAnimationFrame(draw);
+    analyser.getByteTimeDomainData(dataArr);
+    ctx.clearRect(0, 0, W, H);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#7c6fde';
+    ctx.beginPath();
+    const sliceWidth = W / bufLen;
+    let x = 0;
+    for (let i = 0; i < bufLen; i++) {
+      const v = dataArr[i] / 128;
+      const y = (v * H) / 2;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+      x += sliceWidth;
     }
-
-    if (!isReading) return;
-
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    elCurrentAudio = audio;
-
-    setStatus('<i class="ti ti-player-play"></i> Đang đọc câu ' + (idx + 1) + '/' + sentences.length + '…');
-
-    audio.onended = () => {
-      URL.revokeObjectURL(url);
-      if (isReading && !isPaused) speakElFrom(idx + 1);
-    };
-    audio.onerror = () => {
-      setStatus('<i class="ti ti-alert-circle"></i> Lỗi phát âm thanh.');
-    };
-    audio.play();
-  } catch(e) {
-    setStatus('<i class="ti ti-alert-circle"></i> Lỗi ElevenLabs: ' + e.message);
-    isReading = false;
-    document.getElementById('btnPlay').disabled = false;
-    document.getElementById('btnPause').disabled = true;
-    document.getElementById('btnStop').disabled = true;
+    ctx.lineTo(W, H / 2);
+    ctx.stroke();
   }
+  draw();
 }
 
-// ====================== PAUSE / STOP / FINISH ======================
-function togglePause() {
-  if (!isReading) return;
-  if (isPaused) {
-    isPaused = false;
-    if (currentEngine === 'browser') {
-      window.speechSynthesis.resume();
-    } else if (elCurrentAudio) {
-      elCurrentAudio.play();
-    }
-    document.getElementById('btnPause').innerHTML = '<i class="ti ti-player-pause"></i> Tạm dừng';
-    setStatus('<i class="ti ti-player-play"></i> Tiếp tục đọc…');
-  } else {
-    isPaused = true;
-    if (currentEngine === 'browser') {
-      window.speechSynthesis.pause();
-    } else if (elCurrentAudio) {
-      elCurrentAudio.pause();
-    }
-    document.getElementById('btnPause').innerHTML = '<i class="ti ti-player-play"></i> Tiếp tục';
-    setStatus('<i class="ti ti-player-pause"></i> Đã tạm dừng');
-  }
+function stopWave() {
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = null;
 }
 
-function stopReading() {
-  isReading = false;
-  isPaused = false;
-  window.speechSynthesis.cancel();
-  if (elCurrentAudio) { elCurrentAudio.pause(); elCurrentAudio = null; }
-  document.getElementById('btnPlay').disabled = false;
-  document.getElementById('btnPause').disabled = true;
-  document.getElementById('btnPause').innerHTML = '<i class="ti ti-player-pause"></i> Tạm dừng';
-  document.getElementById('btnStop').disabled = true;
-  document.getElementById('progressBar').style.width = '0%';
-  setStatus('<i class="ti ti-circle-dot"></i> Đã dừng');
-  document.querySelectorAll('.sentence').forEach(el => el.className = 'sentence');
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  timer.textContent = m + ':' + String(s).padStart(2, '0');
 }
 
-function finishReading() {
-  isReading = false;
-  elCurrentAudio = null;
-  document.getElementById('btnPlay').disabled = false;
-  document.getElementById('btnPause').disabled = true;
-  document.getElementById('btnStop').disabled = true;
-  document.getElementById('progressBar').style.width = '100%';
-  setStatus('<i class="ti ti-circle-check"></i> Đã đọc xong ✓');
-  document.querySelectorAll('.sentence').forEach(el => el.className = 'sentence done');
-}
-
-function setStatus(html) {
-  document.getElementById('statusText').innerHTML = html;
-}
-
-// ====================== RECORD ======================
-async function toggleRecord() {
+// Recording
+btnRecord.addEventListener('click', async () => {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    clearInterval(recInterval);
-    document.getElementById('btnRecord').innerHTML = '<i class="ti ti-microphone"></i> Bắt đầu ghi âm';
-    document.getElementById('recBadge').className = 'badge';
-    document.getElementById('recBadge').textContent = 'Đã dừng';
-    document.getElementById('recTimer').textContent = '';
+    stopRecording();
     return;
   }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    recordedChunks = [];
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-      const url = URL.createObjectURL(blob);
-      recordings.push({ url, blob, duration: recSeconds });
-      updateRecordingsList();
-      stream.getTracks().forEach(t => t.stop());
-      document.getElementById('recBadge').className = 'badge ok';
-      document.getElementById('recBadge').textContent = 'Đã lưu';
-      checkCloneForm();
-    };
-    mediaRecorder.start();
-    recSeconds = 0;
-    recInterval = setInterval(() => {
-      recSeconds++;
-      const m = Math.floor(recSeconds / 60);
-      const s = recSeconds % 60;
-      document.getElementById('recTimer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
-    }, 1000);
-    document.getElementById('btnRecord').innerHTML = '<i class="ti ti-square"></i> Dừng ghi âm';
-    document.getElementById('recBadge').className = 'badge rec';
-    document.getElementById('recBadge').textContent = 'Đang ghi…';
-  } catch (e) {
-    alert('Không thể truy cập micro: ' + e.message);
+    startRecording(stream);
+  } catch(e) {
+    recStatus.textContent = 'Không có quyền truy cập micro';
+    recHint.textContent = 'Vui lòng cho phép truy cập microphone trong trình duyệt';
   }
+});
+
+function startRecording(stream) {
+  audioChunks = [];
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioContext.createMediaStreamSource(stream);
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 1024;
+  source.connect(analyser);
+
+  waveCanvas.width = waveCanvas.offsetWidth || 600;
+  waveCanvas.height = 72;
+  waveIdle.style.display = 'none';
+  waveCanvas.style.display = 'block';
+  drawWave(analyser);
+
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+  mediaRecorder.onstop = onRecordingStop;
+  mediaRecorder.start();
+
+  btnRecord.classList.add('recording');
+  btnRecord.innerHTML = `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
+  recStatus.textContent = 'Đang ghi âm...';
+  recHint.textContent = 'Nhấn lại để dừng';
+  timer.style.display = 'block';
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 500);
 }
 
-function updateRecordingsList() {
-  const el = document.getElementById('recordingsList');
-  if (!recordings.length) {
-    el.innerHTML = '<span style="color:var(--text-muted)">Chưa có bản ghi âm nào.</span>';
+function stopRecording() {
+  if (mediaRecorder) mediaRecorder.stop();
+  mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  clearInterval(timerInterval);
+  stopWave();
+}
+
+function onRecordingStop() {
+  recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+  const dur = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(dur / 60);
+  const s = dur % 60;
+  sampleDuration.textContent = m + ':' + String(s).padStart(2, '0');
+
+  btnRecord.classList.remove('recording');
+  btnRecord.innerHTML = `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3M8 22h8" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+  timer.style.display = 'none';
+  recStatus.textContent = 'Ghi âm hoàn tất ✓';
+  recHint.textContent = 'Nghe lại hoặc ghi lại nếu cần';
+  playbackBar.classList.add('visible');
+  voiceBadge.classList.add('show');
+
+  badge1.classList.remove('active');
+  badge1.classList.add('done');
+  badge1.textContent = '✓';
+  badge2.classList.add('active');
+
+  // Show waveform idle msg replaced with "Mẫu giọng đã ghi"
+  waveCanvas.style.display = 'none';
+  waveIdle.style.display = 'flex';
+  waveIdle.textContent = '🎤 Mẫu giọng đã ghi — ' + sampleDuration.textContent;
+  waveIdle.style.color = 'var(--green)';
+
+  analyzeVoice();
+}
+
+function analyzeVoice() {
+  // Rough analysis: pick a voice based on detected pitch (simulated via audio analysis)
+  // We do a best-effort pick of a voice that matches locale
+  if (!hasSpeechSynth) return;
+  const voicesArr = window.speechSynthesis.getVoices();
+  const viVoice = voicesArr.findIndex(v => v.lang.startsWith('vi'));
+  if (viVoice >= 0) {
+    voiceSelect.value = viVoice;
+  }
+  if (inputText.value.trim()) btnSpeak.disabled = false;
+}
+
+// Playback of sample
+btnPlaySample.addEventListener('click', () => {
+  if (!recordedBlob) return;
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer = null;
+    btnPlaySample.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>`;
     return;
   }
-  el.innerHTML = recordings.map((r, i) => {
-    const m = Math.floor(r.duration / 60);
-    const s = r.duration % 60;
-    return `<div class="rec-item">
-      <span style="font-weight:600;font-size:14px;min-width:52px;">Bản ${i + 1}</span>
-      <span style="color:var(--text-muted);font-size:13px;">${m}:${s < 10 ? '0' : ''}${s}</span>
-      <audio controls src="${r.url}"></audio>
-      <a href="${r.url}" download="ghi-am-${i + 1}.webm" title="Tải về"
-         style="color:var(--accent);font-size:18px;text-decoration:none;">
-        <i class="ti ti-download"></i>
-      </a>
-      <button class="sm danger" onclick="deleteRecording(${i})" title="Xóa">
-        <i class="ti ti-trash"></i>
-      </button>
-    </div>`;
-  }).join('');
-}
+  const url = URL.createObjectURL(recordedBlob);
+  audioPlayer = new Audio(url);
+  audioPlayer.play();
+  btnPlaySample.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`;
+  audioPlayer.onended = () => {
+    audioPlayer = null;
+    btnPlaySample.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>`;
+  };
+});
 
-function deleteRecording(i) {
-  recordings.splice(i, 1);
-  updateRecordingsList();
-  checkCloneForm();
-}
+btnRerecord.addEventListener('click', () => {
+  recordedBlob = null;
+  playbackBar.classList.remove('visible');
+  voiceBadge.classList.remove('show');
+  waveIdle.textContent = 'Nhấn nút ghi âm để bắt đầu';
+  waveIdle.style.color = '';
+  badge1.classList.add('active');
+  badge1.classList.remove('done');
+  badge1.textContent = '1';
+  badge2.classList.remove('active');
+  recStatus.textContent = 'Sẵn sàng ghi âm';
+  recHint.textContent = 'Đọc bất kỳ câu nào ít nhất 5 giây để phân tích giọng';
+});
 
-// ====================== VOICE PANEL REFRESH ======================
-function refreshVoicePanel() {
-  checkCloneForm();
-  // Update step status
-  const hasKey = !!apiKey;
-  const hasRec = recordings.length > 0;
-  document.getElementById('step1num').className = 'step-num' + (hasKey ? ' done' : '');
-  document.getElementById('step2num').className = 'step-num' + (hasRec ? ' done' : '');
-  document.getElementById('step3num').className = 'step-num' + (clonedVoices.length > 0 ? ' done' : '');
-
-  if (clonedVoices.length > 0) {
-    document.getElementById('cloned-voices-section').style.display = 'block';
-    renderClonedVoicesList();
-  }
-}
-
-function checkCloneForm() {
-  const hasKey = !!apiKey;
-  const hasRec = recordings.length > 0;
-  document.getElementById('clone-no-key').style.display = hasKey ? 'none' : 'block';
-  document.getElementById('clone-no-rec').style.display = (!hasRec && hasKey) ? 'block' : 'none';
-  document.getElementById('clone-form').style.display = (hasKey && hasRec) ? 'block' : 'none';
-}
-
-function renderClonedVoicesList() {
-  const list = document.getElementById('cloned-voices-list');
-  list.innerHTML = clonedVoices.map((v, i) => `
-    <div class="voice-card">
-      <div class="vc-avatar cloned"><i class="ti ti-dna"></i></div>
-      <div class="vc-info">
-        <div class="vc-name">${v.name} <span class="badge ok" style="font-size:11px;">Nhân bản</span></div>
-        <div class="vc-meta">ID: ${v.voice_id}</div>
-      </div>
-      <button class="sm success-btn" onclick="useClonedVoice('${v.voice_id}')">
-        <i class="ti ti-player-play"></i> Dùng ngay
-      </button>
-      <button class="sm danger" onclick="deleteClonedVoice(${i}, '${v.voice_id}')">
-        <i class="ti ti-trash"></i>
-      </button>
-    </div>
-  `).join('');
-}
-
-function useClonedVoice(voiceId) {
-  selectedElVoiceId = voiceId;
-  setEngine('elevenlabs');
-  switchTab('read');
-  // Reload voice list to show selection
-  if (apiKey) loadElVoices().then(() => { selectedElVoiceId = voiceId; renderElVoiceList(); });
-}
-
-async function deleteClonedVoice(idx, voiceId) {
-  if (!confirm('Xóa giọng nhân bản này khỏi ElevenLabs?')) return;
-  try {
-    await fetch('https://api.elevenlabs.io/v1/voices/' + voiceId, {
-      method: 'DELETE',
-      headers: { 'xi-api-key': apiKey }
-    });
-  } catch(e) {}
-  clonedVoices.splice(idx, 1);
-  saveClonedVoices();
-  renderClonedVoicesList();
-  if (clonedVoices.length === 0) document.getElementById('cloned-voices-section').style.display = 'none';
-}
-
-// ====================== CLONE VOICE ======================
-async function cloneVoice() {
-  if (!apiKey) { alert('Cần nhập API key ElevenLabs.'); return; }
-  if (!recordings.length) { alert('Cần ít nhất 1 bản ghi âm.'); return; }
-
-  const name = document.getElementById('cloneVoiceName').value.trim() || 'Giọng của tôi';
-  const desc = document.getElementById('cloneVoiceDesc').value.trim();
-
-  const statusBox = document.getElementById('cloneStatusBox');
-  statusBox.style.display = 'flex';
-  statusBox.className = 'clone-status loading';
-  statusBox.innerHTML = '<span class="spin"><i class="ti ti-loader"></i></span> Đang tải lên ElevenLabs và nhân bản giọng…';
-  document.getElementById('btnClone').disabled = true;
-
-  try {
-    const formData = new FormData();
-    formData.append('name', name);
-    if (desc) formData.append('description', desc);
-    recordings.forEach((r, i) => {
-      formData.append('files', r.blob, `recording-${i + 1}.webm`);
-    });
-
-    const res = await fetch('https://api.elevenlabs.io/v1/voices/add', {
-      method: 'POST',
-      headers: { 'xi-api-key': apiKey },
-      body: formData
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail?.message || 'HTTP ' + res.status);
+// TTS: split text into sentences/chunks for long text
+function splitText(text) {
+  const maxLen = 200;
+  const sentences = text.match(/[^.!?。！？\n]+[.!?。！？\n]?/g) || [text];
+  const chunks = [];
+  let current = '';
+  for (const s of sentences) {
+    if ((current + s).length > maxLen && current.length > 0) {
+      chunks.push(current.trim());
+      current = s;
+    } else {
+      current += s;
     }
-
-    const data = await res.json();
-    const voiceId = data.voice_id;
-
-    // Save cloned voice
-    clonedVoices.push({ name, voice_id: voiceId });
-    saveClonedVoices();
-
-    statusBox.className = 'clone-status success';
-    statusBox.innerHTML = `<i class="ti ti-circle-check"></i> Thành công! Giọng "<strong>${name}</strong>" đã được tạo. <button class="sm success-btn" style="margin-left:8px;" onclick="useClonedVoice('${voiceId}')"><i class="ti ti-player-play"></i> Dùng ngay</button>`;
-
-    document.getElementById('cloned-voices-section').style.display = 'block';
-    renderClonedVoicesList();
-    refreshVoicePanel();
-
-  } catch(e) {
-    statusBox.className = 'clone-status error';
-    statusBox.innerHTML = '<i class="ti ti-alert-circle"></i> Lỗi: ' + e.message;
-  } finally {
-    document.getElementById('btnClone').disabled = false;
   }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks.filter(c => c.length > 0);
 }
 
-function saveClonedVoices() {
-  try { localStorage.setItem('el_cloned_voices', JSON.stringify(clonedVoices)); } catch(e) {}
-}
-
-function loadClonedVoices() {
-  try {
-    const saved = localStorage.getItem('el_cloned_voices');
-    if (saved) clonedVoices = JSON.parse(saved);
-  } catch(e) {}
-}
-
-// ====================== API KEY ======================
-function saveApiKey() {
-  const val = document.getElementById('apiKeyInput').value.trim();
-  apiKey = val;
-  localStorage.setItem('el_api_key', val);
-  const st = document.getElementById('apiKeyStatus');
-  st.innerHTML = '<i class="ti ti-circle-check" style="color:var(--success);"></i> Đã lưu API key.';
-  checkCloneForm();
-}
-
-function clearApiKey() {
-  apiKey = '';
-  localStorage.removeItem('el_api_key');
-  document.getElementById('apiKeyInput').value = '';
-  document.getElementById('apiKeyStatus').innerHTML = '<i class="ti ti-trash" style="color:var(--danger);"></i> Đã xóa API key.';
-}
-
-async function testApiKey() {
-  const val = document.getElementById('apiKeyInput').value.trim();
-  if (!val) { document.getElementById('apiKeyStatus').innerHTML = '<i class="ti ti-alert-circle"></i> Chưa nhập API key.'; return; }
-  const st = document.getElementById('apiKeyStatus');
-  st.innerHTML = '<span class="spin"><i class="ti ti-loader"></i></span> Đang kiểm tra…';
-  try {
-    const res = await fetch('https://api.elevenlabs.io/v1/user', {
-      headers: { 'xi-api-key': val }
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    st.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success);"></i> Kết nối OK · <strong>${data.subscription?.character_count || 0}</strong> / ${data.subscription?.character_limit || '?'} ký tự đã dùng`;
-  } catch(e) {
-    st.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--danger);"></i> Lỗi: ' + e.message + '. Kiểm tra lại API key.';
+function speakNext() {
+  if (currentUtterance >= utterances.length) {
+    onSpeakEnd();
+    return;
   }
+  const u = utterances[currentUtterance];
+  const pct = Math.round((currentUtterance / totalChunks) * 100);
+  progressFill.style.width = pct + '%';
+
+  u.onstart = () => {
+    speakingWord.textContent = u.text.slice(0, 80) + (u.text.length > 80 ? '…' : '');
+  };
+  u.onend = () => {
+    currentUtterance++;
+    speakNext();
+  };
+  u.onerror = (e) => {
+    if (e.error !== 'interrupted') {
+      currentUtterance++;
+      speakNext();
+    }
+  };
+
+  window.speechSynthesis.speak(u);
 }
 
-function toggleApiKeyVisible() {
-  const input = document.getElementById('apiKeyInput');
-  const btn = document.getElementById('btnShowKey');
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.innerHTML = '<i class="ti ti-eye-off"></i>';
-  } else {
-    input.type = 'password';
-    btn.innerHTML = '<i class="ti ti-eye"></i>';
+function onSpeakEnd() {
+  isSpeaking = false;
+  progressFill.style.width = '100%';
+  speakingWord.textContent = '✓ Đọc xong toàn bộ văn bản';
+  btnStop.classList.remove('visible');
+  btnSpeak.disabled = false;
+  btnSpeak.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg> Đọc lại`;
+  setTimeout(() => {
+    progressWrap.classList.remove('show');
+    btnSpeak.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg> Đọc văn bản`;
+  }, 3000);
+}
+
+btnSpeak.addEventListener('click', () => {
+  if (!hasSpeechSynth) return;
+  const text = inputText.value.trim();
+  if (!text) return;
+
+  window.speechSynthesis.cancel();
+  const chunks = splitText(text);
+  totalChunks = chunks.length;
+  utterances = [];
+  currentUtterance = 0;
+  isSpeaking = true;
+
+  const selectedVoice = voices[parseInt(voiceSelect.value)];
+  const rate = parseFloat(rateSlider.value);
+  const pitch = parseFloat(pitchSlider.value);
+  const vol = parseFloat(volSlider.value);
+
+  for (const chunk of chunks) {
+    const u = new SpeechSynthesisUtterance(chunk);
+    if (selectedVoice) u.voice = selectedVoice;
+    u.rate = rate;
+    u.pitch = pitch;
+    u.volume = vol;
+    utterances.push(u);
   }
-}
 
-// ====================== INIT ======================
-loadClonedVoices();
-if (clonedVoices.length > 0) {
-  document.getElementById('cloned-voices-section').style.display = 'block';
-  renderClonedVoicesList();
-}
+  progressWrap.classList.add('show');
+  progressFill.style.width = '0%';
+  speakingWord.textContent = '';
+  btnStop.classList.add('visible');
+  btnSpeak.disabled = true;
+
+  speakNext();
+
+  // Chrome bug: pauses after ~15s without this keepalive
+  const keepAlive = setInterval(() => {
+    if (!isSpeaking) { clearInterval(keepAlive); return; }
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }
+  }, 14000);
+});
+
+btnStop.addEventListener('click', () => {
+  window.speechSynthesis.cancel();
+  isSpeaking = false;
+  utterances = [];
+  currentUtterance = 0;
+  btnStop.classList.remove('visible');
+  btnSpeak.disabled = false;
+  progressWrap.classList.remove('show');
+});
+
+// Enable speak if text typed without recording
+inputText.addEventListener('input', () => {
+  if (hasSpeechSynth && inputText.value.trim()) btnSpeak.disabled = false;
+});
 </script>
 </body>
 </html>
