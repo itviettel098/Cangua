@@ -1,582 +1,731 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RemoteDesk — Điều Khiển Máy Từ Xa</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đọc Văn Bản Tiếng Việt</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <!-- noVNC core từ CDN -->
-  <script type="module">
-    import RFB from 'https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js';
-    window.RFB = RFB;
-  </script>
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-mid: rgba(0,0,0,0.18);
+    --text: #1a1a1a;
+    --text-muted: #6b6b6b;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --accent-border: #bfdbfe;
+    --success: #059669;
+    --success-bg: #ecfdf5;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --warning: #d97706;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
+  @media (prefers-color-scheme: dark) {
     :root {
-      --bg:        #0d0f14;
-      --surface:   #151820;
-      --border:    #1e2330;
-      --accent:    #3b82f6;
-      --accent2:   #6366f1;
-      --success:   #22c55e;
-      --warning:   #f59e0b;
-      --danger:    #ef4444;
-      --text:      #e2e8f0;
-      --muted:     #64748b;
-      --mono:      'JetBrains Mono', monospace;
+      --bg: #111111;
+      --surface: #1e1e1e;
+      --border: rgba(255,255,255,0.1);
+      --border-mid: rgba(255,255,255,0.18);
+      --text: #f0f0f0;
+      --text-muted: #888;
+      --accent: #3b82f6;
+      --accent-light: #1e3a5f;
+      --accent-border: #1d4ed8;
+      --success-bg: #052e16;
+      --danger-bg: #450a0a;
     }
+  }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+  header {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
 
-    /* ── HEADER ── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      height: 56px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      gap: 16px;
-    }
+  header .logo {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 17px;
+  }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 15px;
-      letter-spacing: -0.3px;
-      white-space: nowrap;
-    }
-    .logo svg { color: var(--accent); }
+  header h1 { font-size: 16px; font-weight: 600; }
+  header span { font-size: 13px; color: var(--text-muted); margin-left: auto; }
 
-    .conn-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      max-width: 700px;
-    }
+  .container { max-width: 760px; margin: 0 auto; padding: 20px 16px 40px; }
 
-    .field-group {
-      display: flex;
-      align-items: center;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0 12px;
-      height: 36px;
-      gap: 6px;
-      flex: 1;
-      transition: border-color .2s;
-    }
-    .field-group:focus-within { border-color: var(--accent); }
-    .field-group label {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      white-space: nowrap;
-    }
-    .field-group input {
-      background: none;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 13px;
-      width: 100%;
-    }
-    .field-group input::placeholder { color: var(--muted); }
+  .tab-row {
+    display: flex; gap: 6px; margin-bottom: 16px;
+  }
 
-    .field-group.narrow { flex: 0 0 110px; }
-    .field-group.pw     { flex: 0 0 150px; }
+  .tab {
+    padding: 7px 16px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    font-size: 14px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    transition: all 0.12s;
+    display: flex; align-items: center; gap: 6px;
+  }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 16px;
-      height: 36px;
-      border: none;
-      border-radius: 8px;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: filter .15s, opacity .15s;
-      white-space: nowrap;
-    }
-    .btn:hover   { filter: brightness(1.15); }
-    .btn:active  { filter: brightness(.9); }
-    .btn-connect { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
-    .btn-disco   { background: var(--danger); color: #fff; display: none; }
-    .btn-icon    { background: var(--border); color: var(--text); padding: 0 10px; }
+  .tab:hover { background: var(--surface); color: var(--text); }
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    border-color: var(--border-mid);
+  }
 
-    /* status dot */
-    #status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--muted);
-      flex-shrink: 0;
-      transition: background .3s;
-      box-shadow: 0 0 0 0 transparent;
-    }
-    #status-dot.connected  {
-      background: var(--success);
-      box-shadow: 0 0 0 3px rgba(34,197,94,.25);
-    }
-    #status-dot.connecting { background: var(--warning); animation: pulse 1s infinite; }
-    #status-dot.error      { background: var(--danger); }
-    @keyframes pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.4); }
-      50%      { box-shadow: 0 0 0 5px rgba(245,158,11,0); }
-    }
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
 
-    #status-text {
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-    /* ── TOOLBAR ── */
-    #toolbar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    #toolbar .sep {
-      width: 1px; height: 20px;
-      background: var(--border);
-      margin: 0 4px;
-    }
-    #toolbar label { font-size: 12px; color: var(--muted); }
-    #toolbar select {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 12px;
-      padding: 3px 8px;
-      height: 28px;
-      outline: none;
-      cursor: pointer;
-    }
-    #toolbar select:focus { border-color: var(--accent); }
+  textarea {
+    width: 100%;
+    min-height: 140px;
+    resize: vertical;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.75;
+    transition: border-color 0.12s;
+  }
 
-    /* ── CANVAS AREA ── */
-    #canvas-wrap {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  textarea::placeholder { color: var(--text-muted); }
 
-    #screen { width: 100%; height: 100%; }
+  .highlight-box {
+    min-height: 140px;
+    line-height: 1.9;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    word-wrap: break-word;
+  }
 
-    /* placeholder */
-    #placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      pointer-events: none;
-    }
-    .placeholder-icon {
-      width: 80px; height: 80px;
-      border-radius: 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-    }
-    .placeholder-icon svg { width: 36px; height: 36px; }
-    #placeholder h2 {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    #placeholder p {
-      font-size: 14px;
-      color: var(--muted);
-      text-align: center;
-      max-width: 340px;
-      line-height: 1.6;
-    }
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      width: 340px;
-    }
-    .step {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-    .step-num {
-      background: var(--border);
-      color: var(--accent);
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
+  .sentence { cursor: pointer; border-radius: 3px; padding: 2px 1px; transition: background 0.15s; }
+  .sentence:hover { background: var(--accent-light); }
+  .sentence.active { background: #bfdbfe; color: #1e3a8a; }
+  .sentence.done { color: var(--text-muted); }
 
-    /* ── TOAST ── */
-    #toast {
-      position: fixed;
-      bottom: 20px; left: 50%;
-      transform: translateX(-50%) translateY(60px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: transform .3s ease;
-      z-index: 999;
-      box-shadow: 0 8px 32px rgba(0,0,0,.5);
-    }
-    #toast.show { transform: translateX(-50%) translateY(0); }
-    #toast.ok   { border-color: var(--success); color: var(--success); }
-    #toast.err  { border-color: var(--danger);  color: var(--danger);  }
-    #toast.info { border-color: var(--accent);  color: var(--accent);  }
+  .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .row + .row { margin-top: 10px; }
 
-    /* ── FULLSCREEN ── */
-    #canvas-wrap:fullscreen #screen,
-    #canvas-wrap:-webkit-full-screen #screen { width: 100vw; height: 100vh; }
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border-mid);
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.12s, transform 0.1s, border-color 0.12s;
+    font-weight: 500;
+  }
 
-    /* RESPONSIVE */
-    @media (max-width: 700px) {
-      .conn-bar { flex-wrap: wrap; }
-      .field-group.narrow, .field-group.pw { flex: 1 1 120px; }
-      header { height: auto; padding: 10px 12px; flex-wrap: wrap; }
-    }
-  </style>
+  button:hover { background: var(--bg); }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button.primary:hover { background: #1d4ed8; }
+
+  button.danger {
+    background: var(--danger-bg);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  button.sm {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  select {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg);
+    flex: 1;
+    min-width: 160px;
+    cursor: pointer;
+  }
+  select:focus { outline: none; border-color: var(--accent); }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+  }
+  .slider-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    min-width: 96px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 4px;
+    cursor: pointer;
+  }
+  .slider-val {
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 36px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  .badge {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border);
+    color: var(--text-muted);
+    background: var(--bg);
+    font-weight: 500;
+  }
+  .badge.rec { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+  .badge.ok { background: var(--success-bg); color: var(--success); border-color: var(--success); }
+
+  .progress-wrap {
+    background: var(--bg);
+    border-radius: 4px;
+    height: 5px;
+    width: 100%;
+    margin-top: 12px;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+  }
+  .progress-bar {
+    height: 5px;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+
+  .status {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  hr { border: none; border-top: 0.5px solid var(--border); margin: 12px 0; }
+
+  .info-box {
+    background: var(--accent-light);
+    border: 0.5px solid var(--accent-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .voice-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 14px;
+  }
+  .voice-item:last-child { border-bottom: none; }
+
+  .rec-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .rec-item:last-child { border-bottom: none; }
+
+  audio { height: 32px; flex: 1; min-width: 0; }
+
+  @media (max-width: 500px) {
+    .slider-label { min-width: 70px; font-size: 12px; }
+    .container { padding: 14px 10px 40px; }
+  }
+</style>
 </head>
 <body>
 
-<!-- ── HEADER ── -->
 <header>
-  <div class="logo">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="2" y="3" width="20" height="14" rx="2"/>
-      <path d="M8 21h8M12 17v4"/>
-    </svg>
-    RemoteDesk
-  </div>
-
-  <div class="conn-bar">
-    <div class="field-group">
-      <label>HOST</label>
-      <input id="inp-host" type="text" placeholder="192.168.1.10 hoặc domain" value="" />
-    </div>
-    <div class="field-group narrow">
-      <label>PORT</label>
-      <input id="inp-port" type="number" placeholder="6080" value="6080" />
-    </div>
-    <div class="field-group pw">
-      <label>MẬT KHẨU</label>
-      <input id="inp-pass" type="password" placeholder="(tuỳ chọn)" />
-    </div>
-    <button class="btn btn-connect" id="btn-connect" onclick="doConnect()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <path d="M5 12h14M12 5l7 7-7 7"/>
-      </svg>
-      Kết nối
-    </button>
-    <button class="btn btn-disco" id="btn-disco" onclick="doDisconnect()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-      Ngắt
-    </button>
-    <div id="status-dot"></div>
-    <span id="status-text">Chưa kết nối</span>
-  </div>
+  <div class="logo"><i class="ti ti-volume"></i></div>
+  <h1>Đọc văn bản tiếng Việt</h1>
+  <span>Text to Speech</span>
 </header>
 
-<!-- ── TOOLBAR ── -->
-<div id="toolbar">
-  <button class="btn btn-icon" title="Gửi Ctrl+Alt+Del" onclick="sendCAD()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
-    </svg>
-    Ctrl+Alt+Del
-  </button>
+<div class="container">
 
-  <button class="btn btn-icon" title="Toàn màn hình" onclick="doFullscreen()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
-      <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-    </svg>
-    Toàn màn hình
-  </button>
-
-  <button class="btn btn-icon" title="Chụp màn hình" onclick="doScreenshot()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-      <circle cx="12" cy="13" r="4"/>
-    </svg>
-    Chụp màn hình
-  </button>
-
-  <div class="sep"></div>
-
-  <label>Chất lượng:</label>
-  <select id="sel-quality" onchange="setQuality()">
-    <option value="9">Cao nhất</option>
-    <option value="6" selected>Trung bình</option>
-    <option value="3">Thấp (tiết kiệm)</option>
-  </select>
-
-  <label style="margin-left:8px">Nén:</label>
-  <select id="sel-compress" onchange="setCompress()">
-    <option value="2">Nén thấp</option>
-    <option value="4" selected>Nén vừa</option>
-    <option value="9">Nén cao</option>
-  </select>
-
-  <div class="sep"></div>
-
-  <label>Clipboard:</label>
-  <button class="btn btn-icon" onclick="pasteClip()">Dán sang máy từ xa</button>
-</div>
-
-<!-- ── CANVAS ── -->
-<div id="canvas-wrap">
-  <div id="screen"></div>
-
-  <div id="placeholder">
-    <div class="placeholder-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="1.5" stroke-linecap="round">
-        <rect x="2" y="3" width="20" height="14" rx="2"/>
-        <path d="M8 21h8M12 17v4"/>
-        <path d="M7 8l3 2-3 2M13 12h4"/>
-      </svg>
-    </div>
-    <h2>Điều khiển máy từ xa</h2>
-    <p>Nhập địa chỉ máy chủ VNC + port WebSocket rồi nhấn <strong>Kết nối</strong>.</p>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <span>Cài <strong>websockify</strong> trên máy cần điều khiển:<br>
-          <code style="font-family:var(--mono);font-size:11px;color:#a5b4fc">
-            websockify --web . 6080 localhost:5900
-          </code>
-        </span>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <span>Đảm bảo <strong>VNC Server</strong> đang chạy (port 5900) và mở firewall port 6080.</span>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <span>Nhập host + port vào thanh trên, điền mật khẩu nếu cần, rồi <strong>Kết nối</strong>.</span>
-      </div>
-    </div>
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTab('read')" id="tab-read">
+      <i class="ti ti-file-text"></i> Đọc văn bản
+    </button>
+    <button class="tab" onclick="switchTab('voice')" id="tab-voice">
+      <i class="ti ti-microphone"></i> Giọng đọc
+    </button>
   </div>
-</div>
 
-<!-- ── TOAST ── -->
-<div id="toast">
-  <span id="toast-icon">●</span>
-  <span id="toast-msg"></span>
+  <!-- ====== PANEL: ĐỌC VĂN BẢN ====== -->
+  <div id="panel-read">
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-pencil"></i> Nhập văn bản</div>
+      <textarea id="textInput" placeholder="Dán hoặc nhập văn bản vào đây để đọc thành giọng nói...&#10;&#10;Ví dụ: Xin chào! Đây là công cụ đọc văn bản tiếng Việt."></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button class="sm" onclick="pasteText()"><i class="ti ti-clipboard"></i> Dán</button>
+        <button class="sm" onclick="clearText()"><i class="ti ti-trash"></i> Xóa</button>
+        <span class="badge" id="charCount">0 ký tự · 0 câu</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-settings"></i> Cài đặt giọng đọc</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="slider-row">
+          <span class="slider-label"><i class="ti ti-user-circle"></i> Giọng đọc</span>
+          <select id="voiceSelect"><option value="">Đang tải giọng...</option></select>
+        </div>
+        <hr>
+        <div class="slider-row">
+          <span class="slider-label"><i class="ti ti-player-play"></i> Tốc độ</span>
+          <input type="range" min="0.5" max="2" step="0.1" value="1" id="rateSlider"
+            oninput="document.getElementById('rateVal').textContent=parseFloat(this.value).toFixed(1)+'x'">
+          <span class="slider-val" id="rateVal">1.0x</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label"><i class="ti ti-wave-sine"></i> Cao độ</span>
+          <input type="range" min="0.5" max="2" step="0.1" value="1" id="pitchSlider"
+            oninput="document.getElementById('pitchVal').textContent=parseFloat(this.value).toFixed(1)">
+          <span class="slider-val" id="pitchVal">1.0</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label"><i class="ti ti-volume"></i> Âm lượng</span>
+          <input type="range" min="0" max="1" step="0.05" value="1" id="volSlider"
+            oninput="document.getElementById('volVal').textContent=Math.round(this.value*100)+'%'">
+          <span class="slider-val" id="volVal">100%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-player-play"></i> Điều khiển phát</div>
+      <div class="row">
+        <button class="primary" id="btnPlay" onclick="startReading()">
+          <i class="ti ti-player-play"></i> Đọc
+        </button>
+        <button id="btnPause" onclick="togglePause()" disabled>
+          <i class="ti ti-player-pause"></i> Tạm dừng
+        </button>
+        <button class="danger" id="btnStop" onclick="stopReading()" disabled>
+          <i class="ti ti-player-stop"></i> Dừng
+        </button>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="status" id="statusText">
+        <i class="ti ti-circle-dot"></i> Sẵn sàng
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-highlight"></i> Văn bản – highlight từng câu</div>
+      <div class="highlight-box" id="highlightArea">
+        <span style="color:var(--text-muted);font-size:14px;">Nhập văn bản phía trên rồi nhấn <strong>Đọc</strong> để bắt đầu. Mỗi câu sẽ được tô màu khi đọc đến.</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ====== PANEL: GIỌNG ĐỌC ====== -->
+  <div id="panel-voice" style="display:none;">
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-microphone"></i> Ghi âm giọng đọc của bạn</div>
+      <div class="info-box">
+        <strong>Hướng dẫn:</strong> Nhấn bắt đầu ghi âm và đọc bất kỳ đoạn văn nào khoảng <strong>1 phút</strong>. File ghi âm (.webm) sẽ được tải về để lưu lại.
+      </div>
+      <div class="row">
+        <button id="btnRecord" onclick="toggleRecord()">
+          <i class="ti ti-microphone"></i> Bắt đầu ghi âm
+        </button>
+        <span class="badge" id="recBadge">Chưa ghi</span>
+        <span id="recTimer" style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums;"></span>
+      </div>
+      <div id="recordingsList" style="margin-top:14px;color:var(--text-muted);font-size:14px;">
+        Chưa có bản ghi âm nào.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-list"></i> Giọng tiếng Việt có sẵn trên thiết bị</div>
+      <div id="viVoiceList" style="font-size:14px;color:var(--text-muted);">Đang kiểm tra...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-device-mobile"></i> Cài thêm giọng tiếng Việt</div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text);">
+        <p style="margin-bottom:8px;">Nếu không thấy giọng tiếng Việt, bạn có thể cài thêm:</p>
+        <p>🪟 <strong>Windows:</strong> Cài đặt → Thời gian &amp; Ngôn ngữ → Giọng nói → Thêm giọng → chọn <em>Tiếng Việt</em></p>
+        <p>🍎 <strong>macOS:</strong> System Settings → Accessibility → Spoken Content → System Voice</p>
+        <p>📱 <strong>iOS:</strong> Cài đặt → Trợ năng → Nội dung đọc → Giọng nói</p>
+        <p>🤖 <strong>Android:</strong> Cài đặt → Trợ năng → Chuyển văn bản thành giọng nói</p>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <script>
-  let rfb = null;
+  let voices = [];
+  let sentences = [];
+  let currentIdx = 0;
+  let isPaused = false;
+  let isReading = false;
+  let utterance = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordings = [];
+  let recInterval = null;
+  let recSeconds = 0;
 
-  /* ── KẾT NỐI ── */
-  function doConnect() {
-    const host = document.getElementById('inp-host').value.trim();
-    const port = document.getElementById('inp-port').value.trim() || '6080';
-    const pass = document.getElementById('inp-pass').value;
+  // ---- TAB ----
+  function switchTab(t) {
+    document.getElementById('panel-read').style.display = t === 'read' ? 'block' : 'none';
+    document.getElementById('panel-voice').style.display = t === 'voice' ? 'block' : 'none';
+    document.getElementById('tab-read').className = 'tab' + (t === 'read' ? ' active' : '');
+    document.getElementById('tab-voice').className = 'tab' + (t === 'voice' ? ' active' : '');
+    if (t === 'voice') listViVoices();
+  }
 
-    if (!host) { toast('Vui lòng nhập địa chỉ máy chủ!', 'err'); return; }
-
-    setStatus('connecting', 'Đang kết nối…');
-    showPlaceholder(false);
-
-    const url = `wss://${host}:${port}`;
-
-    try {
-      rfb = new window.RFB(document.getElementById('screen'), url, {
-        credentials: pass ? { password: pass } : undefined
+  // ---- VOICES ----
+  function loadVoices() {
+    voices = window.speechSynthesis.getVoices();
+    const sel = document.getElementById('voiceSelect');
+    sel.innerHTML = '';
+    const vi = voices.filter(v => v.lang && v.lang.startsWith('vi'));
+    const others = voices.filter(v => !v.lang.startsWith('vi'));
+    if (vi.length) {
+      const g = document.createElement('optgroup');
+      g.label = '🇻🇳 Tiếng Việt';
+      vi.forEach(v => {
+        const o = document.createElement('option');
+        o.value = v.name;
+        o.textContent = v.name + ' (' + v.lang + ')';
+        g.appendChild(o);
       });
-
-      rfb.viewOnly       = false;
-      rfb.scaleViewport  = true;
-      rfb.resizeSession  = true;
-
-      rfb.addEventListener('connect',    onConnected);
-      rfb.addEventListener('disconnect', onDisconnected);
-      rfb.addEventListener('credentialsrequired', () => {
-        const pw = prompt('Nhập mật khẩu VNC:');
-        if (pw !== null) rfb.sendCredentials({ password: pw });
+      sel.appendChild(g);
+    }
+    if (others.length) {
+      const g2 = document.createElement('optgroup');
+      g2.label = 'Giọng khác';
+      others.slice(0, 25).forEach(v => {
+        const o = document.createElement('option');
+        o.value = v.name;
+        o.textContent = v.name + ' (' + v.lang + ')';
+        g2.appendChild(o);
       });
-
-      setQuality();
-      setCompress();
-    } catch (e) {
-      setStatus('error', 'Lỗi khởi tạo');
-      toast('Không thể tạo kết nối: ' + e.message, 'err');
-      showPlaceholder(true);
+      sel.appendChild(g2);
     }
-
-    document.getElementById('btn-connect').style.display = 'none';
-    document.getElementById('btn-disco').style.display   = 'inline-flex';
+    if (!sel.options.length) sel.innerHTML = '<option value="">Không tìm thấy giọng</option>';
   }
 
-  function onConnected() {
-    setStatus('connected', 'Đã kết nối');
-    toast('Kết nối thành công!', 'ok');
-  }
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+  loadVoices();
+  setTimeout(loadVoices, 500);
 
-  function onDisconnected(e) {
-    const clean = e.detail && e.detail.clean;
-    setStatus('error', clean ? 'Đã ngắt kết nối' : 'Mất kết nối');
-    toast(clean ? 'Đã ngắt kết nối.' : 'Mất kết nối với máy từ xa.', clean ? 'info' : 'err');
-    showPlaceholder(true);
-    document.getElementById('btn-connect').style.display = 'inline-flex';
-    document.getElementById('btn-disco').style.display   = 'none';
-    rfb = null;
-  }
-
-  /* ── NGẮT ── */
-  function doDisconnect() {
-    if (rfb) rfb.disconnect();
-  }
-
-  /* ── CTRL+ALT+DEL ── */
-  function sendCAD() {
-    if (!rfb) { toast('Chưa kết nối.', 'err'); return; }
-    rfb.sendCtrlAltDel();
-    toast('Đã gửi Ctrl+Alt+Del', 'info');
-  }
-
-  /* ── FULLSCREEN ── */
-  function doFullscreen() {
-    const wrap = document.getElementById('canvas-wrap');
-    if (!document.fullscreenElement) {
-      wrap.requestFullscreen && wrap.requestFullscreen();
-    } else {
-      document.exitFullscreen && document.exitFullscreen();
-    }
-  }
-
-  /* ── CHỤP MÀN HÌNH ── */
-  function doScreenshot() {
-    if (!rfb) { toast('Chưa kết nối.', 'err'); return; }
-    try {
-      const canvas = document.querySelector('#screen canvas');
-      if (!canvas) { toast('Không tìm thấy canvas.', 'err'); return; }
-      const a = document.createElement('a');
-      a.href     = canvas.toDataURL('image/png');
-      a.download = `screenshot_${Date.now()}.png`;
-      a.click();
-      toast('Đã lưu ảnh chụp màn hình.', 'ok');
-    } catch(e) {
-      toast('Lỗi chụp màn hình: ' + e.message, 'err');
-    }
-  }
-
-  /* ── CHẤT LƯỢNG / NÉN ── */
-  function setQuality() {
-    if (rfb) rfb.qualityLevel = parseInt(document.getElementById('sel-quality').value);
-  }
-  function setCompress() {
-    if (rfb) rfb.compressionLevel = parseInt(document.getElementById('sel-compress').value);
-  }
-
-  /* ── DÁN CLIPBOARD ── */
-  async function pasteClip() {
-    if (!rfb) { toast('Chưa kết nối.', 'err'); return; }
-    try {
-      const text = await navigator.clipboard.readText();
-      rfb.clipboardPasteFrom(text);
-      toast('Đã dán clipboard sang máy từ xa.', 'ok');
-    } catch(e) {
-      toast('Không đọc được clipboard: ' + e.message, 'err');
-    }
-  }
-
-  /* ── HELPERS ── */
-  function setStatus(state, text) {
-    const dot  = document.getElementById('status-dot');
-    const span = document.getElementById('status-text');
-    dot.className  = state;
-    span.textContent = text;
-  }
-
-  function showPlaceholder(show) {
-    document.getElementById('placeholder').style.display = show ? 'flex' : 'none';
-  }
-
-  let toastTimer;
-  function toast(msg, type = 'info') {
-    const el  = document.getElementById('toast');
-    const ico = document.getElementById('toast-icon');
-    const txt = document.getElementById('toast-msg');
-    ico.textContent = type === 'ok' ? '✓' : type === 'err' ? '✕' : 'ℹ';
-    txt.textContent = msg;
-    el.className    = `show ${type}`;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.className = '', 3500);
-  }
-
-  /* Enter để kết nối */
-  document.querySelectorAll('.conn-bar input').forEach(el => {
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') doConnect(); });
+  // ---- TEXT INPUT ----
+  document.getElementById('textInput').addEventListener('input', function () {
+    const t = this.value.trim();
+    const chars = this.value.length;
+    const sents = t ? splitSentences(t).length : 0;
+    document.getElementById('charCount').textContent = chars + ' ký tự · ' + sents + ' câu';
   });
+
+  function clearText() {
+    stopReading();
+    document.getElementById('textInput').value = '';
+    document.getElementById('charCount').textContent = '0 ký tự · 0 câu';
+    document.getElementById('highlightArea').innerHTML =
+      '<span style="color:var(--text-muted);font-size:14px;">Nhập văn bản phía trên rồi nhấn <strong>Đọc</strong> để bắt đầu.</span>';
+  }
+
+  async function pasteText() {
+    try {
+      const t = await navigator.clipboard.readText();
+      document.getElementById('textInput').value = t;
+      document.getElementById('textInput').dispatchEvent(new Event('input'));
+    } catch (e) {
+      alert('Không thể truy cập clipboard. Vui lòng dán thủ công (Ctrl+V / Cmd+V).');
+    }
+  }
+
+  // ---- SENTENCES ----
+  function splitSentences(text) {
+    const parts = text.match(/[^.!?\n]+[.!?\n]?/g) || [text];
+    return parts.map(s => s.trim()).filter(s => s.length > 0);
+  }
+
+  function buildHighlight() {
+    const area = document.getElementById('highlightArea');
+    area.innerHTML = '';
+    sentences.forEach((s, i) => {
+      const span = document.createElement('span');
+      span.className = 'sentence';
+      span.id = 'sent-' + i;
+      span.textContent = s + ' ';
+      span.onclick = () => jumpTo(i);
+      span.title = 'Nhấn để đọc từ đây';
+      area.appendChild(span);
+    });
+  }
+
+  function highlightSentence(idx) {
+    document.querySelectorAll('.sentence').forEach((el, i) => {
+      el.className = 'sentence' + (i < idx ? ' done' : i === idx ? ' active' : '');
+    });
+    const el = document.getElementById('sent-' + idx);
+    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    const pct = sentences.length > 1 ? (idx / (sentences.length - 1)) * 100 : 0;
+    document.getElementById('progressBar').style.width = Math.round(pct) + '%';
+  }
+
+  function jumpTo(idx) {
+    if (!isReading) return;
+    window.speechSynthesis.cancel();
+    currentIdx = idx;
+    speakFrom(idx);
+  }
+
+  // ---- PLAYBACK ----
+  function startReading() {
+    const text = document.getElementById('textInput').value.trim();
+    if (!text) { setStatus('<i class="ti ti-alert-circle"></i> Chưa có văn bản để đọc.'); return; }
+    stopReading();
+    sentences = splitSentences(text);
+    currentIdx = 0;
+    buildHighlight();
+    isReading = true;
+    isPaused = false;
+    document.getElementById('btnPlay').disabled = true;
+    document.getElementById('btnPause').disabled = false;
+    document.getElementById('btnStop').disabled = false;
+    speakFrom(0);
+  }
+
+  function speakFrom(idx) {
+    if (idx >= sentences.length) { finishReading(); return; }
+    currentIdx = idx;
+    highlightSentence(idx);
+    setStatus('<i class="ti ti-player-play"></i> Đang đọc câu ' + (idx + 1) + '/' + sentences.length + '…');
+
+    utterance = new SpeechSynthesisUtterance(sentences[idx]);
+    const selVoice = document.getElementById('voiceSelect').value;
+    const v = voices.find(x => x.name === selVoice);
+    if (v) utterance.voice = v;
+    utterance.rate = parseFloat(document.getElementById('rateSlider').value);
+    utterance.pitch = parseFloat(document.getElementById('pitchSlider').value);
+    utterance.volume = parseFloat(document.getElementById('volSlider').value);
+    utterance.onend = () => { if (isReading && !isPaused) speakFrom(idx + 1); };
+    utterance.onerror = (e) => { if (e.error !== 'interrupted') setStatus('<i class="ti ti-alert-circle"></i> Lỗi: ' + e.error); };
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function togglePause() {
+    if (!isReading) return;
+    if (isPaused) {
+      isPaused = false;
+      window.speechSynthesis.resume();
+      document.getElementById('btnPause').innerHTML = '<i class="ti ti-player-pause"></i> Tạm dừng';
+      setStatus('<i class="ti ti-player-play"></i> Tiếp tục đọc…');
+    } else {
+      isPaused = true;
+      window.speechSynthesis.pause();
+      document.getElementById('btnPause').innerHTML = '<i class="ti ti-player-play"></i> Tiếp tục';
+      setStatus('<i class="ti ti-player-pause"></i> Đã tạm dừng');
+    }
+  }
+
+  function stopReading() {
+    isReading = false;
+    isPaused = false;
+    window.speechSynthesis.cancel();
+    document.getElementById('btnPlay').disabled = false;
+    document.getElementById('btnPause').disabled = true;
+    document.getElementById('btnPause').innerHTML = '<i class="ti ti-player-pause"></i> Tạm dừng';
+    document.getElementById('btnStop').disabled = true;
+    document.getElementById('progressBar').style.width = '0%';
+    setStatus('<i class="ti ti-circle-dot"></i> Đã dừng');
+    document.querySelectorAll('.sentence').forEach(el => el.className = 'sentence');
+  }
+
+  function finishReading() {
+    isReading = false;
+    document.getElementById('btnPlay').disabled = false;
+    document.getElementById('btnPause').disabled = true;
+    document.getElementById('btnStop').disabled = true;
+    document.getElementById('progressBar').style.width = '100%';
+    setStatus('<i class="ti ti-circle-check"></i> Đã đọc xong ✓');
+    document.querySelectorAll('.sentence').forEach(el => el.className = 'sentence done');
+  }
+
+  function setStatus(html) {
+    document.getElementById('statusText').innerHTML = html;
+  }
+
+  // ---- RECORD ----
+  async function toggleRecord() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      clearInterval(recInterval);
+      document.getElementById('btnRecord').innerHTML = '<i class="ti ti-microphone"></i> Bắt đầu ghi âm';
+      document.getElementById('recBadge').className = 'badge';
+      document.getElementById('recBadge').textContent = 'Đã dừng';
+      document.getElementById('recTimer').textContent = '';
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        recordings.push({ url, duration: recSeconds });
+        updateRecordingsList();
+        stream.getTracks().forEach(t => t.stop());
+        document.getElementById('recBadge').className = 'badge ok';
+        document.getElementById('recBadge').textContent = 'Đã lưu';
+      };
+      mediaRecorder.start();
+      recSeconds = 0;
+      recInterval = setInterval(() => {
+        recSeconds++;
+        const m = Math.floor(recSeconds / 60);
+        const s = recSeconds % 60;
+        document.getElementById('recTimer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      }, 1000);
+      document.getElementById('btnRecord').innerHTML = '<i class="ti ti-square"></i> Dừng ghi âm';
+      document.getElementById('recBadge').className = 'badge rec';
+      document.getElementById('recBadge').textContent = 'Đang ghi…';
+    } catch (e) {
+      alert('Không thể truy cập micro: ' + e.message);
+    }
+  }
+
+  function updateRecordingsList() {
+    const el = document.getElementById('recordingsList');
+    if (!recordings.length) { el.innerHTML = '<span style="color:var(--text-muted)">Chưa có bản ghi âm nào.</span>'; return; }
+    el.innerHTML = recordings.map((r, i) => {
+      const m = Math.floor(r.duration / 60);
+      const s = r.duration % 60;
+      return `<div class="rec-item">
+        <span style="font-weight:600;font-size:14px;min-width:70px;">Bản ${i + 1}</span>
+        <span style="color:var(--text-muted);font-size:13px;">${m}:${s < 10 ? '0' : ''}${s}</span>
+        <audio controls src="${r.url}"></audio>
+        <a href="${r.url}" download="ghi-am-${i + 1}.webm" title="Tải về"
+           style="color:var(--accent);font-size:18px;text-decoration:none;">
+          <i class="ti ti-download"></i>
+        </a>
+      </div>`;
+    }).join('');
+  }
+
+  function listViVoices() {
+    const all = window.speechSynthesis.getVoices();
+    const vi = all.filter(v => v.lang && v.lang.startsWith('vi'));
+    const el = document.getElementById('viVoiceList');
+    if (vi.length) {
+      el.innerHTML = vi.map(v =>
+        `<div class="voice-item">
+          <i class="ti ti-user-circle" style="color:var(--accent);font-size:18px;"></i>
+          <span style="font-weight:500;">${v.name}</span>
+          <span style="color:var(--text-muted);font-size:12px;">${v.lang}</span>
+          ${v.localService ? '<span class="badge ok">Nội tuyến</span>' : '<span class="badge">Online</span>'}
+        </div>`
+      ).join('');
+    } else {
+      el.innerHTML = '<p style="color:var(--text-muted);line-height:1.7;">Không tìm thấy giọng tiếng Việt. Xem hướng dẫn cài thêm bên dưới.</p>';
+    }
+  }
+
+  // init
+  setTimeout(listViVoices, 800);
 </script>
 </body>
 </html>
