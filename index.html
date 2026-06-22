@@ -15,7 +15,6 @@
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh}
 
-/* HEADER */
 header{background:var(--surface);border-bottom:0.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
 .logo{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 header h1{font-size:15px;font-weight:600;flex:1}
@@ -23,49 +22,38 @@ header h1{font-size:15px;font-weight:600;flex:1}
 
 .wrap{max-width:700px;margin:0 auto;padding:14px 12px 80px}
 
-/* VIDEO */
 .video-wrap{position:relative;background:#000;border-radius:var(--r);overflow:hidden;margin-bottom:12px;border:0.5px solid var(--border)}
 video{width:100%;display:block;max-height:55vw}
-.sub-overlay{
-  position:absolute;bottom:8px;left:0;right:0;
-  text-align:center;pointer-events:none;padding:0 12px;
-}
-.sub-text{
-  display:inline-block;background:rgba(0,0,0,0.78);
-  color:#fff;font-size:clamp(13px,3.5vw,18px);
-  line-height:1.5;padding:4px 10px;border-radius:5px;
-  max-width:95%;word-wrap:break-word;
-}
+.sub-overlay{position:absolute;bottom:8px;left:0;right:0;text-align:center;pointer-events:none;padding:0 12px}
+.sub-text{display:inline-block;background:rgba(0,0,0,0.78);color:#fff;font-size:clamp(13px,3.5vw,18px);line-height:1.5;padding:4px 10px;border-radius:5px;max-width:95%;word-wrap:break-word}
 .sub-text:empty{display:none}
 
-/* UPLOAD AREA */
-.upload-zone{
-  border:1.5px dashed var(--border2);border-radius:var(--r);
-  padding:28px 20px;text-align:center;cursor:pointer;
-  background:var(--surface);transition:border-color .15s,background .15s;
-  margin-bottom:10px;
-}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:28px 20px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color .15s,background .15s;margin-bottom:10px}
 .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-light)}
 .upload-zone input{display:none}
-.uz-icon{font-size:32px;margin-bottom:8px;opacity:.5}
-.uz-title{font-size:14px;font-weight:600;margin-bottom:4px}
-.uz-sub{font-size:12px;color:var(--muted)}
 
 .card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
 .ctitle{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
 
-/* FILE STATUS */
 .fstatus{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rs);background:var(--surface2);border:0.5px solid var(--border);margin-bottom:8px;font-size:13px}
 .fstatus .ficon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 .fstatus .ficon.vid{background:rgba(59,130,246,.2);color:var(--accent)}
 .fstatus .ficon.srt{background:rgba(34,197,94,.2);color:var(--success)}
+.fstatus .ficon.track{background:rgba(245,158,11,.2);color:var(--warn)}
 .fstatus .ficon.empty{background:var(--surface);color:var(--muted)}
 .fstatus .fname{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fstatus .fmeta{font-size:11px;color:var(--muted);margin-top:1px}
 .fstatus .fclr{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:16px;flex-shrink:0}
 .fstatus .fclr:hover{color:var(--danger)}
 
-/* CONTROLS */
+/* Track selector */
+.track-selector{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--rs);background:rgba(245,158,11,.08);border:0.5px solid rgba(245,158,11,.3);margin-bottom:8px;font-size:13px}
+.track-selector select{flex:1;border:0.5px solid rgba(245,158,11,.4);background:var(--surface2);color:var(--text);border-radius:var(--rs);padding:5px 8px;font-size:12px;font-family:inherit;cursor:pointer}
+.track-selector select:focus{outline:none;border-color:var(--warn)}
+.track-label{font-size:12px;color:var(--warn);white-space:nowrap}
+.track-use-btn{background:rgba(245,158,11,.15);border:0.5px solid var(--warn);color:var(--warn);font-size:12px;padding:5px 10px;border-radius:var(--rs);cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:500;transition:background .12s}
+.track-use-btn:hover{background:rgba(245,158,11,.25)}
+
 .ctrl-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 button{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;transition:background .12s,transform .1s;font-weight:500;white-space:nowrap}
 button:hover{background:var(--surface2)}
@@ -84,7 +72,6 @@ select:focus{outline:none;border-color:var(--accent)}
 input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
 .sval{font-size:12px;font-weight:600;min-width:36px;text-align:right;color:var(--text)}
 
-/* SUBTITLE LIST */
 .sub-list{max-height:260px;overflow-y:auto;border:0.5px solid var(--border);border-radius:var(--rs)}
 .sub-item{padding:9px 12px;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer;transition:background .12s;display:flex;gap:10px;align-items:flex-start}
 .sub-item:last-child{border-bottom:none}
@@ -94,7 +81,6 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
 .sub-time{font-size:11px;color:var(--muted);min-width:42px;font-variant-numeric:tabular-nums;margin-top:1px;flex-shrink:0}
 .sub-txt{line-height:1.5;flex:1}
 
-/* STATUS */
 .status{font-size:12px;color:var(--muted);margin-top:8px;min-height:18px;display:flex;align-items:center;gap:5px}
 .badge{font-size:11px;padding:2px 8px;border-radius:20px;border:0.5px solid var(--border);color:var(--muted);background:var(--surface2)}
 .badge.ok{background:rgba(34,197,94,.15);color:var(--success);border-color:var(--success)}
@@ -103,16 +89,13 @@ input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
 
 .info-box{background:var(--accent-light);border:0.5px solid rgba(59,130,246,.3);border-radius:var(--rs);padding:10px 13px;font-size:13px;line-height:1.6;margin-bottom:10px}
 .warn-box{background:rgba(245,158,11,.1);border:0.5px solid rgba(245,158,11,.4);border-radius:var(--rs);padding:10px 13px;font-size:13px;line-height:1.6;margin-bottom:10px}
+.success-box{background:rgba(34,197,94,.1);border:0.5px solid rgba(34,197,94,.4);border-radius:var(--rs);padding:10px 13px;font-size:13px;line-height:1.6;margin-bottom:10px}
 
 hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
 
 .spin{animation:spin 1s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Volume for TTS */
-.vol-row{display:flex;align-items:center;gap:8px;margin-top:8px}
-
-/* Mobile bottom padding */
 @media(max-width:480px){
   video{max-height:52vw}
   .sub-text{font-size:clamp(12px,3.8vw,16px)}
@@ -131,7 +114,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
 
   <!-- VIDEO PLAYER -->
   <div class="video-wrap" id="videoWrap" style="display:none">
-    <video id="vid" controls playsinline></video>
+    <video id="vid" controls playsinline crossorigin="anonymous"></video>
     <div class="sub-overlay"><span class="sub-text" id="subOverlay"></span></div>
   </div>
 
@@ -151,15 +134,29 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
     </div>
     <input type="file" id="vidInput" accept="video/*" onchange="loadVideo(this)">
 
-    <!-- SRT upload -->
-    <div class="fstatus" id="srtStatus">
-      <div class="ficon empty" id="srtIcon">📝</div>
-      <div style="flex:1;min-width:0">
-        <div class="fname" id="srtName">Chưa chọn phụ đề</div>
-        <div class="fmeta" id="srtMeta">File .SRT</div>
+    <!-- Embedded track info (shown after video loads if tracks found) -->
+    <div id="trackZone" style="display:none">
+      <div class="track-selector" id="trackSelector">
+        <span class="track-label">🎞️ Track nhúng:</span>
+        <select id="trackSel"></select>
+        <button class="track-use-btn" onclick="useEmbeddedTrack()">Dùng track này</button>
       </div>
-      <button class="sm" onclick="document.getElementById('srtInput').click()">Chọn</button>
-      <button class="fclr" id="srtClr" onclick="clearSrt()" style="display:none">✕</button>
+      <div class="success-box" id="trackActiveBox" style="display:none">
+        ✅ Đang dùng track nhúng: <strong id="trackActiveName"></strong> — <span id="trackActiveCount"></span> dòng phụ đề
+      </div>
+    </div>
+
+    <!-- SRT source status -->
+    <div id="srtZone">
+      <div class="fstatus" id="srtStatus">
+        <div class="ficon empty" id="srtIcon">📝</div>
+        <div style="flex:1;min-width:0">
+          <div class="fname" id="srtName">Chưa chọn phụ đề</div>
+          <div class="fmeta" id="srtMeta">File .SRT (fallback nếu không có track nhúng)</div>
+        </div>
+        <button class="sm" onclick="document.getElementById('srtInput').click()">Chọn</button>
+        <button class="fclr" id="srtClr" onclick="clearSrt()" style="display:none">✕</button>
+      </div>
     </div>
     <input type="file" id="srtInput" accept=".srt,.txt" onchange="loadSrt(this)">
 
@@ -172,12 +169,10 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
   <!-- VOICE SETTINGS -->
   <div class="card" id="voiceCard">
     <div class="ctitle">🔊 Giọng đọc &amp; cài đặt</div>
-
     <div class="slider-row" style="margin-bottom:8px">
       <span class="slabel">Giọng đọc</span>
       <select id="voiceSel"></select>
     </div>
-
     <div class="slider-row">
       <span class="slabel">Tốc độ</span>
       <input type="range" min=".5" max="2" step=".05" value="1" id="rateSlider"
@@ -221,7 +216,11 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
 
   <!-- SUBTITLE LIST -->
   <div class="card" id="subCard" style="display:none">
-    <div class="ctitle">📋 Danh sách phụ đề <span class="badge info" id="subCountBadge">0 dòng</span></div>
+    <div class="ctitle">
+      📋 Danh sách phụ đề
+      <span class="badge info" id="subCountBadge">0 dòng</span>
+      <span class="badge warn" id="subSourceBadge" style="display:none"></span>
+    </div>
     <div class="sub-list" id="subList"></div>
   </div>
 
@@ -230,7 +229,9 @@ hr{border:none;border-top:0.5px solid var(--border);margin:10px 0}
 <script>
 // ===== STATE =====
 let subs=[], voices=[], isDubbing=false, isMuted=false;
-let currentSubIdx=-1, ttsTimer=null, checkTimer=null;
+let currentSubIdx=-1, checkTimer=null;
+let subsSource='none'; // 'track' | 'srt' | 'none'
+let videoObjectURL=null;
 
 const vid=document.getElementById('vid');
 
@@ -240,7 +241,7 @@ function loadVoices(){
   const sel=document.getElementById('voiceSel');
   sel.innerHTML='';
   const vi=voices.filter(v=>v.lang&&v.lang.startsWith('vi'));
-  const others=voices.filter(v=>!v.lang.startsWith('vi'));
+  const others=voices.filter(v=>!v.lang||!v.lang.startsWith('vi'));
   document.getElementById('noVoiceWarn').style.display=vi.length?'none':'block';
   if(vi.length){
     const g=document.createElement('optgroup');g.label='🇻🇳 Tiếng Việt';
@@ -260,26 +261,139 @@ loadVoices();setTimeout(loadVoices,600);
 // ===== VIDEO =====
 function loadVideo(input){
   const f=input.files[0];if(!f) return;
-  const url=URL.createObjectURL(f);
-  vid.src=url;
+  if(videoObjectURL) URL.revokeObjectURL(videoObjectURL);
+  videoObjectURL=URL.createObjectURL(f);
+  vid.src=videoObjectURL;
   vid.volume=parseFloat(document.getElementById('vidVolSlider').value);
   document.getElementById('videoWrap').style.display='block';
   document.getElementById('vidIcon').className='ficon vid';
   document.getElementById('vidName').textContent=f.name;
   document.getElementById('vidMeta').textContent=formatSize(f.size);
   document.getElementById('vidClr').style.display='';
+
+  // Reset sub state
+  subs=[];subsSource='none';
+  document.getElementById('trackZone').style.display='none';
+  document.getElementById('trackActiveBox').style.display='none';
+  document.getElementById('subCard').style.display='none';
+
+  // Detect embedded tracks after metadata loads
+  vid.addEventListener('loadedmetadata', onVideoMetadata, {once:true});
   checkReady();
 }
+
+function onVideoMetadata(){
+  const tracks=Array.from(vid.textTracks);
+  const subtitleTracks=tracks.filter(t=>
+    t.kind==='subtitles'||t.kind==='captions'||t.kind==='metadata'
+  );
+
+  if(subtitleTracks.length>0){
+    // Show track zone
+    document.getElementById('trackZone').style.display='block';
+    const sel=document.getElementById('trackSel');
+    sel.innerHTML='';
+    subtitleTracks.forEach((t,i)=>{
+      const o=document.createElement('option');
+      o.value=i;
+      const lang=t.language?` [${t.language}]`:'';
+      const kind=t.kind?` (${t.kind})`:'';
+      o.textContent=(t.label||`Track ${i+1}`)+lang+kind;
+      sel.appendChild(o);
+    });
+
+    // Auto-use first track (priority: track over SRT)
+    useEmbeddedTrack();
+
+    // Update SRT label to say "fallback"
+    document.getElementById('srtMeta').textContent='File .SRT (ghi đè track nhúng nếu chọn)';
+  }
+}
+
+function useEmbeddedTrack(){
+  const tracks=Array.from(vid.textTracks).filter(t=>
+    t.kind==='subtitles'||t.kind==='captions'||t.kind==='metadata'
+  );
+  const idx=parseInt(document.getElementById('trackSel').value)||0;
+  const track=tracks[idx];
+  if(!track) return;
+
+  // Enable track to load cues
+  track.mode='hidden';
+
+  // Wait for cues to load
+  function tryParseCues(){
+    if(track.cues&&track.cues.length>0){
+      parseCuesFromTrack(track);
+    } else {
+      // Retry after short delay (browser may not have loaded cues yet)
+      setTimeout(tryParseCues, 200);
+    }
+  }
+
+  // Also listen to cuechange as secondary method
+  track.addEventListener('cuechange', function onCue(){
+    if(track.cues&&track.cues.length>0){
+      track.removeEventListener('cuechange',onCue);
+      parseCuesFromTrack(track);
+    }
+  });
+
+  // Seek slightly to trigger cue loading
+  const savedTime=vid.currentTime;
+  vid.currentTime=0.001;
+  setTimeout(()=>{
+    vid.currentTime=savedTime;
+    tryParseCues();
+  },300);
+}
+
+function parseCuesFromTrack(track){
+  const cues=Array.from(track.cues||[]);
+  if(!cues.length) return;
+
+  subs=cues.map(c=>{
+    // Strip VTT tags from text
+    const text=(c.text||'').replace(/<[^>]+>/g,'').replace(/\n/g,' ').trim();
+    return {start:c.startTime,end:c.endTime,text,duration:c.endTime-c.startTime};
+  }).filter(s=>s.text).sort((a,b)=>a.start-b.start);
+
+  subsSource='track';
+  const trackName=track.label||track.language||'Track nhúng';
+  document.getElementById('trackActiveName').textContent=trackName;
+  document.getElementById('trackActiveCount').textContent=subs.length;
+  document.getElementById('trackActiveBox').style.display='block';
+  document.getElementById('trackSelector').style.display=
+    Array.from(vid.textTracks).filter(t=>t.kind==='subtitles'||t.kind==='captions'||t.kind==='metadata').length>1?'flex':'none';
+
+  // Update SRT zone to show it's optional
+  if(!document.getElementById('srtClr').style.display||document.getElementById('srtClr').style.display==='none'){
+    document.getElementById('srtIcon').className='ficon empty';
+    document.getElementById('srtName').textContent='Tùy chọn: tải SRT để ghi đè track';
+    document.getElementById('srtMeta').textContent='File .SRT sẽ được ưu tiên nếu chọn';
+  }
+
+  renderSubList('track');
+  document.getElementById('subCard').style.display='block';
+  checkReady();
+  setStatus('🎞️ Đã đọc '+subs.length+' dòng từ track nhúng — sẵn sàng thuyết minh');
+}
+
 function clearVid(){
   vid.src='';
+  if(videoObjectURL){URL.revokeObjectURL(videoObjectURL);videoObjectURL=null;}
   document.getElementById('videoWrap').style.display='none';
   document.getElementById('vidIcon').className='ficon empty';
   document.getElementById('vidName').textContent='Chưa chọn video';
   document.getElementById('vidMeta').textContent='MP4, MKV, AVI, MOV…';
   document.getElementById('vidClr').style.display='none';
   document.getElementById('vidInput').value='';
+  document.getElementById('trackZone').style.display='none';
+  document.getElementById('trackActiveBox').style.display='none';
+  subs=[];subsSource='none';
   stopDub();checkReady();
 }
+
 function setVidVol(v){
   vid.volume=parseFloat(v);
   document.getElementById('vidVolVal').textContent=Math.round(v*100)+'%';
@@ -290,27 +404,47 @@ function loadSrt(input){
   const f=input.files[0];if(!f) return;
   const reader=new FileReader();
   reader.onload=e=>{
-    subs=parseSRT(e.target.result);
+    const parsed=parseSRT(e.target.result);
+    if(!parsed.length){
+      setStatus('⚠️ Không tìm thấy phụ đề trong file SRT');return;
+    }
+    // SRT overrides track
+    subs=parsed;
+    subsSource='srt';
     document.getElementById('srtIcon').className='ficon srt';
     document.getElementById('srtName').textContent=f.name;
     document.getElementById('srtMeta').textContent=subs.length+' dòng phụ đề';
     document.getElementById('srtClr').style.display='';
-    renderSubList();
+    // Hide track active box since SRT takes over
+    document.getElementById('trackActiveBox').style.display='none';
+    renderSubList('srt');
     document.getElementById('subCard').style.display='block';
     checkReady();
+    setStatus('📄 Đã tải SRT: '+subs.length+' dòng (ghi đè track nhúng)');
   };
   reader.readAsText(f,'UTF-8');
 }
+
 function clearSrt(){
-  subs=[];
   document.getElementById('srtIcon').className='ficon empty';
   document.getElementById('srtName').textContent='Chưa chọn phụ đề';
-  document.getElementById('srtMeta').textContent='File .SRT';
+  document.getElementById('srtMeta').textContent='File .SRT (fallback nếu không có track nhúng)';
   document.getElementById('srtClr').style.display='none';
   document.getElementById('srtInput').value='';
-  document.getElementById('subCard').style.display='none';
-  document.getElementById('subList').innerHTML='';
-  stopDub();checkReady();
+
+  // Fall back to embedded track if available
+  const tracks=Array.from(vid.textTracks).filter(t=>
+    t.kind==='subtitles'||t.kind==='captions'||t.kind==='metadata'
+  );
+  if(tracks.length>0){
+    useEmbeddedTrack();
+    setStatus('↩️ Đã bỏ SRT — quay lại dùng track nhúng');
+  } else {
+    subs=[];subsSource='none';
+    document.getElementById('subCard').style.display='none';
+    document.getElementById('subList').innerHTML='';
+    stopDub();checkReady();
+  }
 }
 
 function parseSRT(txt){
@@ -319,8 +453,6 @@ function parseSRT(txt){
   blocks.forEach(b=>{
     const lines=b.trim().split('\n');
     if(lines.length<2) return;
-    let ti=0;
-    // find timestamp line
     let tsLine='',textLines=[];
     for(let i=0;i<lines.length;i++){
       if(lines[i].includes('-->')){tsLine=lines[i];textLines=lines.slice(i+1);break}
@@ -346,9 +478,13 @@ function formatSize(b){
 }
 
 // ===== SUBTITLE LIST =====
-function renderSubList(){
+function renderSubList(source){
   const el=document.getElementById('subList');
   document.getElementById('subCountBadge').textContent=subs.length+' dòng';
+  const badge=document.getElementById('subSourceBadge');
+  if(source==='track'){badge.textContent='Track nhúng';badge.style.display='';}
+  else if(source==='srt'){badge.textContent='File SRT';badge.style.display='';}
+  else{badge.style.display='none';}
   el.innerHTML=subs.map((s,i)=>`
     <div class="sub-item" id="si${i}" onclick="jumpTo(${i})">
       <span class="sub-time">${fmtTime(s.start)}</span>
@@ -382,7 +518,10 @@ function checkReady(){
   document.getElementById('hbadge').textContent=
     !vid.src?'Chưa có video':
     !subs.length?'Chưa có phụ đề':'Sẵn sàng';
-  setStatus(ready?'✅ Sẵn sàng — nhấn Bắt đầu để thuyết minh':'📂 Tải video và file SRT để bắt đầu');
+  if(ready&&!isDubbing)
+    setStatus('✅ Sẵn sàng — nhấn Bắt đầu để thuyết minh');
+  else if(!vid.src||!subs.length)
+    setStatus('📂 Tải video'+(vid.src?'',' và file SRT để bắt đầu'));
 }
 
 function startDub(){
@@ -400,7 +539,6 @@ function startDub(){
 function stopDub(){
   isDubbing=false;
   window.speechSynthesis.cancel();
-  clearTimeout(ttsTimer);
   clearInterval(checkTimer);
   currentSubIdx=-1;
   document.getElementById('btnStart').disabled=!(vid.src&&subs.length);
@@ -411,7 +549,6 @@ function stopDub(){
   document.getElementById('hbadge').textContent='Đã dừng';
 }
 
-// SYNC LOOP — kiểm tra mỗi 100ms
 function startSyncLoop(){
   clearInterval(checkTimer);
   checkTimer=setInterval(()=>{
@@ -421,7 +558,6 @@ function startSyncLoop(){
       return;
     }
     const t=vid.currentTime;
-    // tìm sub hiện tại
     const idx=subs.findIndex(s=>t>=s.start&&t<s.end);
     if(idx!==-1&&idx!==currentSubIdx){
       currentSubIdx=idx;
@@ -431,14 +567,10 @@ function startSyncLoop(){
       document.getElementById('hbadge').textContent='Câu '+(idx+1)+'/'+subs.length;
     }
     if(idx===-1){
-      // khoảng trống giữa các sub
       const nextSub=subs.find(s=>s.start>t);
       if(!nextSub){finishDub();return}
-      // nếu đang ở khoảng trống, xóa overlay
       const prevSub=subs.slice().reverse().find(s=>s.end<=t);
-      if(!prevSub||prevSub.end<=t){
-        document.getElementById('subOverlay').textContent='';
-      }
+      if(!prevSub||prevSub.end<=t) document.getElementById('subOverlay').textContent='';
     }
   },100);
 }
@@ -471,26 +603,15 @@ function finishDub(){
 function toggleMute(){
   isMuted=!isMuted;
   const btn=document.getElementById('btnMute');
-  if(isMuted){
-    window.speechSynthesis.cancel();
-    btn.textContent='🔊 Bật TTS';
-    btn.style.opacity='.5';
-  } else {
-    btn.textContent='🔇 Tắt TTS';
-    btn.style.opacity='';
-  }
+  if(isMuted){window.speechSynthesis.cancel();btn.textContent='🔊 Bật TTS';btn.style.opacity='.5';}
+  else{btn.textContent='🔇 Tắt TTS';btn.style.opacity='';}
 }
 
 function setStatus(t){document.getElementById('statusTxt').textContent=t}
 
-// Pause/resume TTS theo video
 vid.addEventListener('pause',()=>{if(isDubbing) window.speechSynthesis.pause()});
 vid.addEventListener('play',()=>{if(isDubbing) window.speechSynthesis.resume()});
-vid.addEventListener('seeked',()=>{
-  if(!isDubbing) return;
-  window.speechSynthesis.cancel();
-  currentSubIdx=-1;
-});
+vid.addEventListener('seeked',()=>{if(!isDubbing) return;window.speechSynthesis.cancel();currentSubIdx=-1;});
 vid.addEventListener('ended',()=>{if(isDubbing) finishDub()});
 </script>
 </body>
