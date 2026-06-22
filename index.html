@@ -1,687 +1,376 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoiceFlow — Text to Speech</title>
-<style>
-  :root {
-    --bg: #0f0f0f;
-    --bg2: #181818;
-    --bg3: #222;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.15);
-    --text: #f0f0f0;
-    --muted: #888;
-    --faint: #555;
-    --accent: #a3e635;
-    --accent-dark: #6ea800;
-    --accent-dim: rgba(163,230,53,0.12);
-    --radius: 10px;
-    --radius-lg: 16px;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 15px; scroll-behavior: smooth; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 1rem 4rem;
-  }
-
-  /* Header */
-  header {
-    width: 100%;
-    max-width: 720px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 2.5rem;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-icon {
-    width: 36px;
-    height: 36px;
-    background: var(--accent);
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .logo-icon svg { color: #000; }
-  .logo-name {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--text);
-  }
-  .logo-name span { color: var(--accent); }
-  .badge-unlimited {
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: var(--accent-dim);
-    color: var(--accent);
-    border: 1px solid rgba(163,230,53,0.25);
-    font-weight: 500;
-    letter-spacing: 0.03em;
-  }
-
-  /* Main layout */
-  main {
-    width: 100%;
-    max-width: 720px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  /* Card */
-  .card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem 1.5rem;
-  }
-
-  /* Section label */
-  .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-
-  /* Textarea */
-  textarea {
-    width: 100%;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.7;
-    padding: 14px 16px;
-    resize: vertical;
-    min-height: 180px;
-    outline: none;
-    font-family: inherit;
-    transition: border-color .2s;
-  }
-  textarea:focus { border-color: var(--border2); }
-  textarea::placeholder { color: var(--faint); }
-
-  .meta-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-  }
-  .meta-stat {
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .meta-stat strong { color: var(--accent); font-weight: 600; }
-
-  /* Controls grid */
-  .controls-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  @media (max-width: 520px) { .controls-grid { grid-template-columns: 1fr; } }
-
-  .ctrl-item label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 7px;
-  }
-
-  select {
-    width: 100%;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-size: 13px;
-    padding: 8px 12px;
-    outline: none;
-    cursor: pointer;
-    transition: border-color .2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
-  }
-  select:focus { border-color: var(--border2); }
-  optgroup { color: var(--muted); font-size: 11px; }
-
-  /* Slider */
-  .slider-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .slider-wrap input[type=range] {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 4px;
-    background: var(--bg3);
-    border-radius: 2px;
-    outline: none;
-    border: 1px solid var(--border);
-    cursor: pointer;
-  }
-  .slider-wrap input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    transition: transform .1s;
-  }
-  .slider-wrap input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
-  .slider-val {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent);
-    min-width: 38px;
-    text-align: right;
-  }
-
-  /* Buttons */
-  .btn-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 20px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text);
-    font-size: 14px;
-    font-family: inherit;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background .15s, border-color .15s, transform .1s;
-    white-space: nowrap;
-  }
-  .btn:hover { background: var(--bg3); border-color: var(--border2); }
-  .btn:active { transform: scale(0.97); }
-  .btn-play {
-    background: var(--accent);
-    color: #000;
-    border-color: transparent;
-    font-weight: 600;
-    min-width: 120px;
-    justify-content: center;
-  }
-  .btn-play:hover { background: #b5f54a; }
-  .btn-play:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-  .btn-ghost {
-    background: transparent;
-    border-color: var(--border);
-    color: var(--muted);
-  }
-  .btn-ghost:hover { color: var(--text); }
-  .btn-stop { border-color: rgba(255,80,80,.3); color: #ff6060; }
-  .btn-stop:hover { background: rgba(255,80,80,.08); }
-  .btn-spacer { margin-left: auto; }
-
-  /* Progress */
-  .progress-card { display: none; }
-  .progress-card.active { display: block; }
-  .prog-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .prog-status {
-    font-size: 13px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .dot-live {
-    width: 7px; height: 7px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: blink 1.2s ease-in-out infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:1}50%{opacity:.25} }
-  .prog-pct {
-    font-size: 13px;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .prog-track {
-    height: 5px;
-    background: var(--bg3);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 14px;
-  }
-  .prog-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 3px;
-    transition: width .4s ease;
-    width: 0%;
-  }
-
-  /* Chunk queue */
-  .queue {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    max-height: 140px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-  .q-item {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 6px 10px;
-    border-radius: 7px;
-    font-size: 12px;
-    color: var(--muted);
-    transition: background .15s;
-  }
-  .q-item.active { background: var(--accent-dim); color: var(--text); }
-  .q-item.done { color: var(--faint); }
-  .q-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--faint); }
-  .q-item.active .q-dot { background: var(--accent); animation: blink 1.2s infinite; }
-  .q-item.done .q-dot { background: var(--accent-dark); }
-  .q-num { font-variant-numeric: tabular-nums; min-width: 20px; font-size: 11px; color: var(--faint); }
-  .q-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-
-  /* Wave animation on header when playing */
-  .wave-wrap {
-    display: none;
-    align-items: center;
-    gap: 3px;
-    height: 18px;
-  }
-  .wave-wrap.visible { display: flex; }
-  .wave-bar {
-    width: 3px;
-    border-radius: 2px;
-    background: var(--accent);
-    animation: wave 1s ease-in-out infinite;
-  }
-  .wave-bar:nth-child(2) { animation-delay: .15s; }
-  .wave-bar:nth-child(3) { animation-delay: .3s; }
-  .wave-bar:nth-child(4) { animation-delay: .45s; }
-  .wave-bar:nth-child(5) { animation-delay: .6s; }
-  @keyframes wave {
-    0%,100%{ height: 4px }
-    50%{ height: 16px }
-  }
-
-  /* Done toast */
-  .toast {
-    display: none;
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--accent);
-    color: #000;
-    font-weight: 600;
-    font-size: 13px;
-    padding: 10px 20px;
-    border-radius: 20px;
-    z-index: 999;
-    animation: fadeup .3s ease;
-  }
-  @keyframes fadeup { from{opacity:0;transform:translateX(-50%) translateY(10px)} }
-
-  /* Footer */
-  footer {
-    margin-top: 3rem;
-    font-size: 12px;
-    color: var(--faint);
-    text-align: center;
-  }
-  footer a { color: var(--muted); text-decoration: none; }
-  footer a:hover { color: var(--text); }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Phỏm 2 Người</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --panel2:#1f2937;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --red:#ef4444;
+      --gold:#fbbf24;
+      --card:#f8fafc;
+      --line:#334155;
+    }
+    *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#111827);color:var(--text)}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:12px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .title{font-size:26px;font-weight:800}
+    .sub{color:var(--muted);font-size:13px}
+    .controls{display:flex;flex-wrap:wrap;gap:8px}
+    button{
+      border:0;border-radius:10px;padding:10px 14px;cursor:pointer;
+      font-weight:700;background:#334155;color:#fff
+    }
+    button.primary{background:var(--blue)}
+    button.good{background:var(--green)}
+    button.danger{background:var(--red)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .stat,.panel{
+      background:rgba(17,24,39,.95);border:1px solid var(--line);
+      border-radius:16px;padding:14px
+    }
+    .label{color:var(--muted);font-size:12px}
+    .value{font-size:18px;font-weight:800;margin-top:4px}
+    .grid{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+    .hand,.melds,.table-row,.players{display:flex;flex-wrap:wrap;gap:8px;min-height:54px}
+    .card{
+      width:54px;height:74px;border-radius:10px;background:var(--card);
+      color:#111;display:flex;align-items:center;justify-content:center;
+      flex-direction:column;font-weight:800;border:1px solid #ddd;
+      user-select:none;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.2)
+    }
+    .card.red{color:#d11}
+    .card.small{width:46px;height:64px;font-size:12px}
+    .card.sel{transform:translateY(-8px);outline:3px solid #60a5fa}
+    .hint{color:var(--muted);font-size:13px;margin-top:8px}
+    .log{
+      height:240px;overflow:auto;background:#0b1220;border:1px solid var(--line);
+      border-radius:12px;padding:10px;font-size:14px;line-height:1.45
+    }
+    .log div{margin-bottom:6px}
+    @media (max-width:900px){
+      .grid,.meta{grid-template-columns:1fr}
+    }
+  </style>
 </head>
 <body>
-
-<header>
-  <div class="logo">
-    <div class="logo-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
-        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-        <line x1="12" y1="19" x2="12" y2="22"/>
-        <line x1="8" y1="22" x2="16" y2="22"/>
-      </svg>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="title">Phỏm 2 Người</div>
+      <div class="sub">Bản 1 file HTML, chạy ngay trên trình duyệt hoặc GitHub Pages.</div>
     </div>
-    <span class="logo-name">Voice<span>Flow</span></span>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="wave-wrap" id="wave">
-      <div class="wave-bar" style="height:4px"></div>
-      <div class="wave-bar" style="height:10px"></div>
-      <div class="wave-bar" style="height:14px"></div>
-      <div class="wave-bar" style="height:10px"></div>
-      <div class="wave-bar" style="height:4px"></div>
-    </div>
-    <span class="badge-unlimited">Không giới hạn</span>
-  </div>
-</header>
-
-<main>
-
-  <!-- Text input -->
-  <div class="card">
-    <div class="section-label">Văn bản</div>
-    <textarea id="txt" placeholder="Dán hoặc gõ văn bản vào đây... Dù hàng nghìn chữ cũng không sao."></textarea>
-    <div class="meta-row">
-      <span class="meta-stat" id="meta">0 ký tự</span>
-      <span class="meta-stat" id="meta2">~0 phút đọc</span>
+    <div class="controls">
+      <button class="primary" id="newGame">Ván mới</button>
+      <button id="drawBtn">Bốc bài</button>
+      <button class="good" id="meldBtn">Hạ phỏm</button>
+      <button class="danger" id="discardBtn">Đánh bài</button>
+      <button id="eatBtn">Ăn bài</button>
     </div>
   </div>
 
-  <!-- Settings -->
-  <div class="card">
-    <div class="section-label">Cài đặt giọng đọc</div>
-    <div class="controls-grid">
-      <div class="ctrl-item">
-        <label for="voice">Giọng đọc</label>
-        <select id="voice"><option>Đang tải...</option></select>
-      </div>
-      <div class="ctrl-item">
-        <label for="rate">Tốc độ</label>
-        <div class="slider-wrap">
-          <input type="range" id="rate" min="0.5" max="2.5" step="0.1" value="1">
-          <span class="slider-val" id="rate-out">1.0×</span>
-        </div>
-      </div>
-      <div class="ctrl-item">
-        <label for="pitch">Cao độ</label>
-        <div class="slider-wrap">
-          <input type="range" id="pitch" min="0.5" max="2" step="0.1" value="1">
-          <span class="slider-val" id="pitch-out">1.0</span>
-        </div>
-      </div>
-      <div class="ctrl-item">
-        <label for="vol">Âm lượng</label>
-        <div class="slider-wrap">
-          <input type="range" id="vol" min="0" max="1" step="0.05" value="1">
-          <span class="slider-val" id="vol-out">100%</span>
-        </div>
-      </div>
-    </div>
+  <div class="meta">
+    <div class="stat"><div class="label">Lượt hiện tại</div><div class="value" id="turnName">-</div></div>
+    <div class="stat"><div class="label">Bộ bài còn lại</div><div class="value" id="deckCount">-</div></div>
+    <div class="stat"><div class="label">Bài bỏ trên bàn</div><div class="value" id="discardTop">-</div></div>
   </div>
 
-  <!-- Controls -->
-  <div class="btn-row">
-    <button class="btn btn-play" id="btn-play" onclick="startTTS()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-      Phát ngay
-    </button>
-    <button class="btn" id="btn-pause" onclick="togglePause()" style="display:none">
-      <svg id="pause-svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-      <span id="pause-label">Tạm dừng</span>
-    </button>
-    <button class="btn btn-stop" id="btn-stop" onclick="stopTTS()" style="display:none">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-      Dừng
-    </button>
-    <div class="btn-spacer"></div>
-    <button class="btn btn-ghost" onclick="clearAll()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      Xóa
-    </button>
-  </div>
+  <div class="grid">
+    <div class="panel">
+      <h3 style="margin:0 0 10px">Bàn chơi</h3>
+      <div class="table-row" id="tableArea"></div>
 
-  <!-- Progress -->
-  <div class="card progress-card" id="prog-card">
-    <div class="prog-header">
-      <div class="prog-status">
-        <div class="dot-live" id="dot-live"></div>
-        <span id="prog-status-text">Đang phát...</span>
-      </div>
-      <span class="prog-pct" id="prog-pct">0%</span>
+      <h3 style="margin:14px 0 10px">Phỏm đã hạ</h3>
+      <div class="melds" id="meldArea"></div>
+
+      <h3 style="margin:14px 0 10px">Bài trên tay</h3>
+      <div class="hand" id="handArea"></div>
+      <div class="hint">Chọn nhiều lá để hạ phỏm. Hỗ trợ sảnh cùng chất hoặc bộ 3/bộ 4 cùng giá trị.</div>
     </div>
-    <div class="prog-track">
-      <div class="prog-fill" id="prog-fill"></div>
+
+    <div class="panel">
+      <h3 style="margin:0 0 10px">Người chơi</h3>
+      <div class="players" id="players"></div>
+
+      <h3 style="margin:14px 0 10px">Nhật ký</h3>
+      <div class="log" id="log"></div>
     </div>
-    <div class="queue" id="queue"></div>
   </div>
-
-</main>
-
-<footer>
-  VoiceFlow · Chạy hoàn toàn trên trình duyệt · Không gửi dữ liệu đi đâu<br>
-  <a href="https://github.com" target="_blank">GitHub Pages</a>
-</footer>
-
-<div class="toast" id="toast">✓ Đã đọc xong toàn bộ văn bản</div>
+</div>
 
 <script>
-const synth = window.speechSynthesis;
-let chunks = [], curIdx = 0, isPlaying = false, isPaused = false;
-const MAX_CHUNK = 170;
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 
-/* ---- Voice loading ---- */
-function loadVoices() {
-  let voices = synth.getVoices();
-  if (!voices.length) { synth.onvoiceschanged = loadVoices; return; }
-  const sel = document.getElementById('voice');
-  sel.innerHTML = '';
-  const vi = voices.filter(v => v.lang.startsWith('vi'));
-  const rest = voices.filter(v => !v.lang.startsWith('vi'));
-  if (vi.length) {
-    const g = document.createElement('optgroup');
-    g.label = '🇻🇳 Tiếng Việt';
-    vi.forEach(v => addOption(g, v));
-    sel.appendChild(g);
+let deck = [];
+let players = [];
+let discardPile = [];
+let turn = 0;
+let selected = new Set();
+let ended = false;
+let justDrew = false;
+let canEat = false;
+
+const el = {
+  hand: document.getElementById('handArea'),
+  players: document.getElementById('players'),
+  log: document.getElementById('log'),
+  turnName: document.getElementById('turnName'),
+  deckCount: document.getElementById('deckCount'),
+  discardTop: document.getElementById('discardTop'),
+  tableArea: document.getElementById('tableArea'),
+  meldArea: document.getElementById('meldArea')
+};
+
+function log(text){
+  el.log.innerHTML += '<div>' + text + '</div>';
+  el.log.scrollTop = el.log.scrollHeight;
+}
+
+function makeDeck(){
+  const d = [];
+  for(const s of SUITS){
+    for(let r=1;r<=13;r++){
+      d.push({
+        suit:s,
+        rank:r,
+        label:RANKS[r-1],
+        value:r===1 ? 1 : Math.min(r,10)
+      });
+    }
   }
-  const g2 = document.createElement('optgroup');
-  g2.label = 'Khác';
-  rest.slice(0, 30).forEach(v => addOption(g2, v));
-  sel.appendChild(g2);
-}
-function addOption(parent, v) {
-  const o = document.createElement('option');
-  o.value = v.name;
-  o.textContent = v.name + ' (' + v.lang + ')' + (v.localService ? '' : ' ☁');
-  parent.appendChild(o);
-}
-
-/* ---- Text helpers ---- */
-function splitText(text) {
-  text = text.trim().replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n');
-  if (!text) return [];
-  const raw = text.match(/[^.!?。！？\n]+[.!?。！？\n]*/g) || [text];
-  const out = [];
-  let buf = '';
-  for (const s of raw) {
-    if ((buf + s).length > MAX_CHUNK && buf.trim()) {
-      out.push(buf.trim());
-      buf = s;
-    } else buf += s;
+  for(let i=d.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [d[i], d[j]] = [d[j], d[i]];
   }
-  if (buf.trim()) out.push(buf.trim());
-  return out;
+  return d;
 }
 
-/* ---- UI helpers ---- */
-function updateMeta() {
-  const t = document.getElementById('txt').value;
-  const words = t.trim() ? t.trim().split(/\s+/).length : 0;
-  const chars = t.length;
-  const sents = t.trim() ? (t.match(/[.!?。！？]+/g) || []).length : 0;
-  document.getElementById('meta').innerHTML = '<strong>' + chars.toLocaleString() + '</strong> ký tự · ' + sents + ' câu';
-  document.getElementById('meta2').textContent = '~' + Math.max(1, Math.ceil(words / 150)) + ' phút đọc';
+function score(hand){
+  return hand.reduce((a,c)=>a+c.value,0);
 }
 
-function renderQueue() {
-  const qEl = document.getElementById('queue');
-  qEl.innerHTML = '';
-  const from = Math.max(0, curIdx - 1);
-  const to = Math.min(chunks.length, curIdx + 8);
-  for (let i = from; i < to; i++) {
-    const div = document.createElement('div');
-    div.className = 'q-item' + (i === curIdx ? ' active' : i < curIdx ? ' done' : '');
-    div.innerHTML =
-      '<span class="q-dot"></span>' +
-      '<span class="q-num">' + (i + 1) + '</span>' +
-      '<span class="q-text">' + esc(chunks[i].substring(0, 100)) + (chunks[i].length > 100 ? '…' : '') + '</span>';
-    qEl.appendChild(div);
+function sameRank(cards){
+  return cards.length>=3 && cards.every(c=>c.rank===cards[0].rank);
+}
+
+function isSequence(cards){
+  if(cards.length<3) return false;
+  const suit = cards[0].suit;
+  const arr = [...cards].sort((a,b)=>a.rank-b.rank);
+  if(!arr.every(c=>c.suit===suit)) return false;
+  for(let i=1;i<arr.length;i++){
+    if(arr[i].rank !== arr[i-1].rank + 1) return false;
   }
-  const pct = chunks.length ? Math.round((curIdx / chunks.length) * 100) : 0;
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-pct').textContent = pct + '%';
-  document.getElementById('prog-status-text').textContent =
-    isPaused ? '⏸ Tạm dừng' : 'Đang đọc đoạn ' + (curIdx + 1) + ' / ' + chunks.length;
-  qEl.scrollTo({ top: qEl.scrollHeight - qEl.clientHeight / 2, behavior: 'smooth' });
+  return true;
 }
 
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 3200);
+function validMeld(cards){
+  return sameRank(cards) || isSequence(cards);
 }
 
-/* ---- TTS core ---- */
-function speakChunk(idx) {
-  if (idx >= chunks.length) { onDone(); return; }
-  curIdx = idx;
-  renderQueue();
-  const utt = new SpeechSynthesisUtterance(chunks[idx]);
-  const voices = synth.getVoices();
-  const chosen = voices.find(v => v.name === document.getElementById('voice').value);
-  if (chosen) utt.voice = chosen;
-  utt.rate   = parseFloat(document.getElementById('rate').value);
-  utt.pitch  = parseFloat(document.getElementById('pitch').value);
-  utt.volume = parseFloat(document.getElementById('vol').value);
-  utt.onend  = () => { if (isPlaying && !isPaused) speakChunk(idx + 1); };
-  utt.onerror = e => { if (e.error !== 'interrupted' && isPlaying) speakChunk(idx + 1); };
-  synth.speak(utt);
+function findMeld(hand){
+  for(let i=0;i<hand.length;i++){
+    for(let j=i+1;j<hand.length;j++){
+      for(let k=j+1;k<hand.length;k++){
+        const a = [hand[i], hand[j], hand[k]];
+        if(validMeld(a)) return a;
+      }
+    }
+  }
+  return [];
 }
 
-function startTTS() {
-  const text = document.getElementById('txt').value.trim();
-  if (!text) { alert('Vui lòng nhập văn bản trước!'); return; }
-  stopTTS();
-  chunks = splitText(text);
-  if (!chunks.length) return;
-  isPlaying = true; isPaused = false; curIdx = 0;
-  setPlayingUI(true);
-  speakChunk(0);
+function current(){
+  return players[turn];
 }
 
-function togglePause() {
-  if (!isPlaying) return;
-  if (isPaused) {
-    isPaused = false;
-    synth.resume();
-    document.getElementById('pause-svg').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-    document.getElementById('pause-label').textContent = 'Tạm dừng';
-    document.getElementById('dot-live').style.animationPlayState = 'running';
-    renderQueue();
+function nextTurn(){
+  turn = (turn + 1) % players.length;
+  justDrew = false;
+  selected.clear();
+  canEat = false;
+  checkEat();
+  render();
+  aiStep();
+}
+
+function checkEat(){
+  const top = discardPile.at(-1);
+  if(!top || turn===0) return canEat = false;
+  const h = current().hand;
+  canEat = h.some((c,i)=>{
+    return sameRank([c, top]) || h.some((d,j)=>j!==i && validMeld([c,d,top]));
+  });
+}
+
+function render(){
+  if(ended){
+    const s0 = score(players[0].hand);
+    const s1 = score(players[1].hand);
+    let winner = 'Hòa';
+    if(s0 < s1) winner = players[0].name;
+    else if(s1 < s0) winner = players[1].name;
+    el.turnName.textContent = 'Kết thúc';
+    log('Kết thúc ván. Điểm: ' + players[0].name + ' = ' + s0 + ', ' + players[1].name + ' = ' + s1 + '. Thắng: ' + winner);
   } else {
-    isPaused = true;
-    synth.pause();
-    document.getElementById('pause-svg').innerHTML = '<path d="M8 5v14l11-7z"/>';
-    document.getElementById('pause-label').textContent = 'Tiếp tục';
-    document.getElementById('dot-live').style.animationPlayState = 'paused';
-    renderQueue();
+    el.turnName.textContent = current().name;
   }
+
+  el.deckCount.textContent = deck.length;
+  el.discardTop.textContent = discardPile.length ? (discardPile.at(-1).label + discardPile.at(-1).suit) : '-';
+
+  el.players.innerHTML = players.map((p,i)=>`
+    <div class="card small" style="width:auto;min-width:140px;cursor:default;${i===turn&&!ended?'outline:2px solid #22c55e':''}">
+      <div>${p.name}</div>
+      <div style="font-size:12px;color:#475569">Bài: ${p.hand.length} | Phỏm: ${p.melds.length} | Điểm: ${score(p.hand)}</div>
+    </div>
+  `).join('');
+
+  el.tableArea.innerHTML = discardPile.slice(-8).map(c=>`
+    <div class="card small ${c.suit==='♥'||c.suit==='♦'?'red':''}">
+      <div>${c.label}</div><div>${c.suit}</div>
+    </div>
+  `).join('');
+
+  el.meldArea.innerHTML = current().melds.flat().map(c=>`
+    <div class="card small ${c.suit==='♥'||c.suit==='♦'?'red':''}">
+      <div>${c.label}</div><div>${c.suit}</div>
+    </div>
+  `).join('') || '<div class="hint">Chưa hạ phỏm nào.</div>';
+
+  el.hand.innerHTML = current().hand.map((c,i)=>`
+    <div class="card ${c.suit==='♥'||c.suit==='♦'?'red':''} ${selected.has(i)?'sel':''}" data-i="${i}">
+      <div>${c.label}</div>
+      <div style="font-size:14px">${c.suit}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('drawBtn').disabled = ended || turn !== 0 || justDrew;
+  document.getElementById('discardBtn').disabled = ended || turn !== 0 || !justDrew;
+  document.getElementById('meldBtn').disabled = ended || turn !== 0;
+  document.getElementById('eatBtn').disabled = ended || turn !== 0 || !canEat;
+
+  document.querySelectorAll('#handArea .card').forEach(card=>{
+    card.onclick = () => {
+      if(ended || turn!==0) return;
+      const i = +card.dataset.i;
+      selected.has(i) ? selected.delete(i) : selected.add(i);
+      render();
+    };
+  });
 }
 
-function stopTTS() {
-  isPlaying = false; isPaused = false;
-  synth.cancel();
-  setPlayingUI(false);
-  document.getElementById('prog-card').className = 'card progress-card';
+function newGame(){
+  deck = makeDeck();
+  players = [
+    { name:'Người chơi 1', hand:deck.splice(0,9), melds:[] },
+    { name:'Người chơi 2', hand:deck.splice(0,9), melds:[] }
+  ];
+  discardPile = [deck.pop()];
+  turn = 0;
+  selected.clear();
+  ended = false;
+  justDrew = false;
+  canEat = false;
+  document.getElementById('log').innerHTML = '';
+  log('Bắt đầu ván mới.');
+  render();
 }
 
-function onDone() {
-  isPlaying = false; isPaused = false;
-  setPlayingUI(false);
-  document.getElementById('prog-fill').style.width = '100%';
-  document.getElementById('prog-pct').textContent = '100%';
-  document.getElementById('prog-status-text').textContent = '✓ Hoàn thành';
-  document.getElementById('dot-live').style.animationPlayState = 'paused';
-  showToast('✓ Đã đọc xong toàn bộ văn bản');
-  setTimeout(() => { document.getElementById('prog-card').className = 'card progress-card'; }, 4000);
+function draw(){
+  if(ended || turn!==0 || justDrew) return;
+  if(!deck.length) return endGame();
+  current().hand.push(deck.pop());
+  justDrew = true;
+  log('Bạn bốc 1 lá.');
+  render();
 }
 
-function setPlayingUI(active) {
-  document.getElementById('btn-play').style.display  = active ? 'none' : 'inline-flex';
-  document.getElementById('btn-pause').style.display = active ? 'inline-flex' : 'none';
-  document.getElementById('btn-stop').style.display  = active ? 'inline-flex' : 'none';
-  document.getElementById('wave').className = active ? 'wave-wrap visible' : 'wave-wrap';
-  if (active) {
-    document.getElementById('prog-card').className = 'card progress-card active';
-    document.getElementById('dot-live').style.animationPlayState = 'running';
-    document.getElementById('pause-svg').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-    document.getElementById('pause-label').textContent = 'Tạm dừng';
+function meld(){
+  if(ended || turn!==0) return;
+  const h = current().hand;
+  const cards = [...selected].sort((a,b)=>a-b).map(i=>h[i]);
+  if(!validMeld(cards)) return alert('Bộ phỏm không hợp lệ.');
+  current().melds.push(cards);
+  [...selected].sort((a,b)=>b-a).forEach(i=>h.splice(i,1));
+  selected.clear();
+  log('Bạn hạ phỏm: ' + cards.map(c=>c.label+c.suit).join('-'));
+  render();
+}
+
+function discard(){
+  if(ended || turn!==0 || !justDrew) return;
+  if(!selected.size) return alert('Chọn 1 lá để đánh.');
+  const idx = [...selected][0];
+  const c = current().hand.splice(idx,1)[0];
+  discardPile.push(c);
+  selected.clear();
+  log('Bạn đánh ' + c.label + c.suit + '.');
+  if(!deck.length || current().hand.length===0) return endGame();
+  nextTurn();
+}
+
+function eat(){
+  if(ended || turn!==0 || !canEat) return;
+  const top = discardPile.pop();
+  current().hand.push(top);
+  justDrew = true;
+  canEat = false;
+  log('Bạn ăn ' + top.label + top.suit + '.');
+  render();
+}
+
+function endGame(){
+  ended = true;
+  render();
+}
+
+function aiStep(){
+  if(ended || turn===0) return;
+  const p = current();
+
+  if(deck.length && Math.random() > 0.25){
+    p.hand.push(deck.pop());
+    log(p.name + ' bốc bài.');
   }
+
+  const meldCards = findMeld(p.hand);
+  if(meldCards.length){
+    p.melds.push(meldCards);
+    meldCards.forEach(c=>{
+      const idx = p.hand.findIndex(x=>x===c);
+      if(idx>=0) p.hand.splice(idx,1);
+    });
+    log(p.name + ' hạ phỏm.');
+  }
+
+  const idx = Math.floor(Math.random()*p.hand.length);
+  const c = p.hand.splice(idx,1)[0];
+  discardPile.push(c);
+  log(p.name + ' đánh ' + c.label + c.suit + '.');
+
+  if(!deck.length || p.hand.length===0) return endGame();
+  setTimeout(()=>nextTurn(), 600);
 }
 
-function clearAll() {
-  stopTTS();
-  document.getElementById('txt').value = '';
-  updateMeta();
-}
+document.getElementById('newGame').onclick = newGame;
+document.getElementById('drawBtn').onclick = draw;
+document.getElementById('meldBtn').onclick = meld;
+document.getElementById('discardBtn').onclick = discard;
+document.getElementById('eatBtn').onclick = eat;
 
-/* ---- Keyboard shortcuts ---- */
-document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'TEXTAREA') return;
-  if (e.code === 'Space') { e.preventDefault(); isPlaying ? togglePause() : startTTS(); }
-  if (e.code === 'Escape') stopTTS();
-});
-
-/* ---- Slider readouts ---- */
-document.getElementById('rate').addEventListener('input', function() {
-  document.getElementById('rate-out').textContent = parseFloat(this.value).toFixed(1) + '×';
-});
-document.getElementById('pitch').addEventListener('input', function() {
-  document.getElementById('pitch-out').textContent = parseFloat(this.value).toFixed(1);
-});
-document.getElementById('vol').addEventListener('input', function() {
-  document.getElementById('vol-out').textContent = Math.round(this.value * 100) + '%';
-});
-document.getElementById('txt').addEventListener('input', updateMeta);
-
-/* ---- Init ---- */
-loadVoices();
+newGame();
+setTimeout(()=>aiStep(), 600);
 </script>
 </body>
 </html>
