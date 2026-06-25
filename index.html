@@ -4,7 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Quét Barcode & QR</title>
-  <!-- ZXing - thư viện decode mạnh nhất, dùng bởi AppSheet/Google -->
   <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,66 +25,68 @@
       border: 1.5px solid #222;
     }
 
-    /* Video ẩn - chỉ dùng để lấy frame */
-    #vid { width: 100%; display: block; }
-
-    /* Canvas chính hiển thị ảnh đã xử lý */
-    #display {
+    /* Video hiển thị trực tiếp - mượt tuyệt đối */
+    #vid {
       width: 100%; display: block;
+      object-fit: cover;
+      /* CSS filter để camera trông nét hơn - không tốn CPU */
+      filter: contrast(1.15) saturate(1.1);
     }
+
+    /* Canvas ẩn chỉ dùng để decode */
+    #offscreen { display: none; }
 
     .frame-box {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 78%; height: 52%;
-      border: 2px solid rgba(0,230,118,0.8);
-      border-radius: 8px;
+      width: 82%; height: 55%;
       pointer-events: none;
     }
     .corner {
       position: absolute;
-      width: 22px; height: 22px;
+      width: 24px; height: 24px;
       border-color: #00e676; border-style: solid;
     }
-    .tl { top:-2px; left:-2px;   border-width: 3px 0 0 3px; border-radius: 5px 0 0 0; }
-    .tr { top:-2px; right:-2px;  border-width: 3px 3px 0 0; border-radius: 0 5px 0 0; }
-    .bl { bottom:-2px; left:-2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 5px; }
-    .br { bottom:-2px; right:-2px;border-width: 0 3px 3px 0; border-radius: 0 0 5px 0; }
+    .tl { top:0; left:0;   border-width: 3px 0 0 3px; border-radius: 5px 0 0 0; }
+    .tr { top:0; right:0;  border-width: 3px 3px 0 0; border-radius: 0 5px 0 0; }
+    .bl { bottom:0; left:0; border-width: 0 0 3px 3px; border-radius: 0 0 0 5px; }
+    .br { bottom:0; right:0;border-width: 0 3px 3px 0; border-radius: 0 0 5px 0; }
+    /* Đường viền mờ xung quanh */
+    .frame-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(0,230,118,0.2);
+      border-radius: 4px;
+    }
 
     .scanline {
       position: absolute;
-      left: 11%; width: 78%;
+      left: 9%; width: 82%;
       height: 2px;
-      background: linear-gradient(90deg, transparent, #00e676, transparent);
-      animation: sc 1.6s ease-in-out infinite;
+      background: linear-gradient(90deg, transparent, #00e676cc, transparent);
+      animation: sc 1.8s ease-in-out infinite;
     }
     @keyframes sc {
-      0%   { top: 24%; }
-      50%  { top: 74%; }
-      100% { top: 24%; }
+      0%   { top: 22%; opacity: 1; }
+      48%  { top: 76%; opacity: 1; }
+      50%  { opacity: 0; top: 76%; }
+      52%  { opacity: 0; top: 22%; }
+      54%  { opacity: 1; }
+      100% { top: 76%; opacity: 1; }
     }
 
-    /* Toggle xử lý ảnh */
-    .filter-bar {
-      position: absolute;
-      top: 8px; right: 8px;
-      display: flex; flex-direction: column; gap: 4px;
+    #flash {
+      position: absolute; inset: 0;
+      background: rgba(0,230,118,0.25);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s;
     }
-    .ftag {
-      font-size: 10px; padding: 3px 7px;
-      border-radius: 20px; cursor: pointer;
-      border: 1px solid #333; background: rgba(0,0,0,0.7);
-      color: #777; user-select: none;
-    }
-    .ftag.on { background: rgba(0,230,118,0.15); border-color: #00e676; color: #00e676; }
 
-    #res-info {
-      position: absolute;
-      bottom: 6px; left: 0; right: 0;
-      text-align: center; font-size: 11px;
-      color: #00e676; opacity: 0;
-      transition: opacity 0.3s;
+    #cam-info {
+      position: absolute; top: 8px; left: 10px;
+      font-size: 10px; color: rgba(255,255,255,0.35);
     }
 
     .btns { display: flex; gap: 8px; margin-top: 12px; width: 100%; max-width: 460px; }
@@ -120,9 +121,9 @@
       border-radius: 9px; padding: 8px 11px;
       margin-bottom: 5px; display: flex;
       justify-content: space-between; gap: 8px;
-      cursor: pointer; font-size: 13px;
+      cursor: pointer;
     }
-    .htx { word-break: break-all; color: #bbb; }
+    .htx { word-break: break-all; color: #bbb; font-size: 13px; }
     .htm { font-size: 10px; color: #00e676; margin-bottom: 2px; }
     .hti { font-size: 11px; color: #383838; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
   </style>
@@ -130,11 +131,11 @@
 <body>
 
 <h1>📷 Quét Barcode / QR</h1>
-<p class="sub">ZXing engine · Xử lý ảnh thực · Siêu nhạy</p>
+<p class="sub">Video mượt · ZXing decode · Nhạy cao</p>
 
 <div id="wrap">
-  <video id="vid" autoplay playsinline muted style="display:none"></video>
-  <canvas id="display"></canvas>
+  <video id="vid" autoplay playsinline muted></video>
+  <canvas id="offscreen"></canvas>
   <div class="frame-box">
     <div class="corner tl"></div>
     <div class="corner tr"></div>
@@ -142,12 +143,8 @@
     <div class="corner br"></div>
   </div>
   <div class="scanline"></div>
-  <div class="filter-bar">
-    <span class="ftag on"  id="f-sharp"  onclick="toggle('sharp')">🔪 Nét</span>
-    <span class="ftag on"  id="f-thresh" onclick="toggle('thresh')">◑ Threshold</span>
-    <span class="ftag off" id="f-invert" onclick="toggle('invert')">⬛ Đảo</span>
-  </div>
-  <div id="res-info">✓ Đọc được!</div>
+  <div id="flash"></div>
+  <div id="cam-info"></div>
 </div>
 
 <p id="msg">Nhấn Bắt đầu để mở camera</p>
@@ -174,68 +171,48 @@
 </div>
 
 <script>
-const vid = document.getElementById('vid');
-const disp = document.getElementById('display');
-const dctx = disp.getContext('2d', { willReadFrequently: true });
-const msgEl = document.getElementById('msg');
-const resInfo = document.getElementById('res-info');
+const vid      = document.getElementById('vid');
+const offscreen = document.getElementById('offscreen');
+const octx     = offscreen.getContext('2d', { willReadFrequently: true });
+const msgEl    = document.getElementById('msg');
+const flashEl  = document.getElementById('flash');
+const camInfo  = document.getElementById('cam-info');
 
-// Offscreen canvas cho xử lý ảnh
-const proc = document.createElement('canvas');
-const pctx = proc.getContext('2d', { willReadFrequently: true });
-
-let stream = null;
+let stream  = null;
 let scanning = false;
-let rafId = null;
-let facing = 'environment';
+let decodeTimer = null;
+let facing  = 'environment';
 let lastText = '';
-let history = JSON.parse(localStorage.getItem('bh2') || '[]');
-let reader = null;
-
-// Filters
-let filters = { sharp: true, thresh: true, invert: false };
-
-function toggle(k) {
-  filters[k] = !filters[k];
-  const el = document.getElementById('f-' + k);
-  el.className = 'ftag ' + (filters[k] ? 'on' : '');
-}
+let reader  = null;
+let history = JSON.parse(localStorage.getItem('bh3') || '[]');
 
 renderH();
 
-// Khởi tạo ZXing reader - multi-format
+// ZXing multi-format với TRY_HARDER
 function initReader() {
   const hints = new Map();
-  const formats = [
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
     ZXing.BarcodeFormat.QR_CODE,
-    ZXing.BarcodeFormat.EAN_13,
-    ZXing.BarcodeFormat.EAN_8,
-    ZXing.BarcodeFormat.CODE_128,
-    ZXing.BarcodeFormat.CODE_39,
-    ZXing.BarcodeFormat.CODE_93,
-    ZXing.BarcodeFormat.UPC_A,
-    ZXing.BarcodeFormat.UPC_E,
-    ZXing.BarcodeFormat.ITF,
-    ZXing.BarcodeFormat.PDF_417,
-    ZXing.BarcodeFormat.DATA_MATRIX,
-    ZXing.BarcodeFormat.AZTEC,
+    ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
+    ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39, ZXing.BarcodeFormat.CODE_93,
+    ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E,
+    ZXing.BarcodeFormat.ITF, ZXing.BarcodeFormat.PDF_417,
+    ZXing.BarcodeFormat.DATA_MATRIX, ZXing.BarcodeFormat.AZTEC,
     ZXing.BarcodeFormat.CODABAR,
-  ];
-  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+  ]);
   hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
   reader = new ZXing.MultiFormatReader();
   reader.setHints(hints);
 }
 
 async function getBestStream() {
-  const tries = [
-    { facingMode: facing, width: { ideal: 3840 }, height: { ideal: 2160 } },
-    { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1080 } },
-    { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720  } },
+  // Thử lần lượt từ cao xuống thấp
+  for (const cfg of [
+    { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1080 }, focusMode: 'continuous' },
+    { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720  }, focusMode: 'continuous' },
     { facingMode: facing },
-  ];
-  for (const c of tries) {
-    try { return await navigator.mediaDevices.getUserMedia({ video: c }); } catch(e) {}
+  ]) {
+    try { return await navigator.mediaDevices.getUserMedia({ video: cfg }); } catch(e) {}
   }
   throw new Error('Không mở được camera');
 }
@@ -263,194 +240,112 @@ async function startScan() {
     stream = await getBestStream();
     vid.srcObject = stream;
     await vid.play();
-    setTimeout(() => applyFocus(stream), 600);
+    setTimeout(() => applyFocus(stream), 700);
 
     const s = stream.getVideoTracks()[0]?.getSettings() || {};
-    msgEl.textContent = s.width ? `${s.width}×${s.height} @ ${Math.round(s.frameRate||0)}fps` : 'Đang quét...';
+    camInfo.textContent = s.width ? `${s.width}×${s.height}` : '';
+    msgEl.textContent = 'Đang quét...';
 
     scanning = true;
     lastText = '';
     document.getElementById('bstart').style.display = 'none';
     document.getElementById('bstop').style.display  = 'flex';
     document.getElementById('bflip').style.display  = 'flex';
-    loop();
+
+    // Decode mỗi 150ms — đủ nhanh, không lag video
+    decodeLoop();
   } catch(e) {
     msgEl.textContent = '❌ ' + e.message;
   }
 }
 
-// === XỬ LÝ ẢNH + DETECT ===
-function processFrame() {
-  if (!vid.videoWidth) return;
+// ===== DECODE LOOP: chạy riêng, không block video =====
+function decodeLoop() {
+  if (!scanning) return;
+  decodeFrame();
+  decodeTimer = setTimeout(decodeLoop, 150);
+}
+
+function decodeFrame() {
+  if (!vid.videoWidth || vid.readyState < 2) return;
 
   const W = vid.videoWidth;
   const H = vid.videoHeight;
-  proc.width = W; proc.height = H;
-  disp.width = W; disp.height = H;
 
-  // Vẽ frame gốc
-  pctx.drawImage(vid, 0, 0, W, H);
+  // Thử 1: Crop vùng giữa (vùng khung quét) — decode nhanh hơn
+  const cropX = Math.floor(W * 0.09);
+  const cropY = Math.floor(H * 0.22);
+  const cropW = Math.floor(W * 0.82);
+  const cropH = Math.floor(H * 0.55);
 
-  // Lấy pixel data để xử lý
-  const imgData = pctx.getImageData(0, 0, W, H);
-  const d = imgData.data;
+  let result = decodeRegion(cropX, cropY, cropW, cropH, W, H);
 
-  // 1. SHARPEN kernel (unsharp mask)
-  if (filters.sharp) {
-    sharpenInPlace(d, W, H);
+  // Thử 2: Full frame nếu không ra
+  if (!result) {
+    result = decodeRegion(0, 0, W, H, W, H);
   }
 
-  // 2. ADAPTIVE THRESHOLD (làm nét barcode)
-  if (filters.thresh) {
-    adaptiveThreshold(d, W, H);
-  }
-
-  // 3. INVERT
-  if (filters.invert) {
-    for (let i = 0; i < d.length; i += 4) {
-      d[i]   = 255 - d[i];
-      d[i+1] = 255 - d[i+1];
-      d[i+2] = 255 - d[i+2];
-    }
-  }
-
-  pctx.putImageData(imgData, 0, 0);
-
-  // Hiển thị ảnh đã xử lý
-  dctx.drawImage(proc, 0, 0, disp.width, disp.height);
-
-  return imgData;
-}
-
-// Sharpen kernel 3x3
-function sharpenInPlace(d, w, h) {
-  const kernel = [0,-1,0,-1,5,-1,0,-1,0];
-  const tmp = new Uint8ClampedArray(d.length);
-  tmp.set(d);
-  for (let y = 1; y < h-1; y++) {
-    for (let x = 1; x < w-1; x++) {
-      const idx = (y*w + x)*4;
-      for (let c = 0; c < 3; c++) {
-        let v = 0;
-        for (let ky = -1; ky <= 1; ky++)
-          for (let kx = -1; kx <= 1; kx++)
-            v += tmp[((y+ky)*w+(x+kx))*4+c] * kernel[(ky+1)*3+(kx+1)];
-        d[idx+c] = Math.max(0, Math.min(255, v));
-      }
+  if (result) {
+    const text = result.getText();
+    const fmt  = result.getBarcodeFormat();
+    if (text !== lastText) {
+      lastText = text;
+      onDetected(text, fmt);
     }
   }
 }
 
-// Adaptive threshold (Otsu-like) — chuyển về B&W tăng tương phản barcode
-function adaptiveThreshold(d, w, h) {
-  // Tính histogram grayscale
-  const hist = new Int32Array(256);
-  for (let i = 0; i < d.length; i+=4) {
-    const g = Math.round(d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114);
-    hist[g]++;
-  }
-  // Otsu threshold
-  const total = w * h;
-  let sum = 0;
-  for (let i = 0; i < 256; i++) sum += i * hist[i];
-  let sumB = 0, wB = 0, max = 0, thresh = 128;
-  for (let i = 0; i < 256; i++) {
-    wB += hist[i];
-    if (!wB) continue;
-    const wF = total - wB;
-    if (!wF) break;
-    sumB += i * hist[i];
-    const mB = sumB / wB;
-    const mF = (sum - sumB) / wF;
-    const between = wB * wF * (mB - mF) ** 2;
-    if (between > max) { max = between; thresh = i; }
-  }
-  // Apply
-  for (let i = 0; i < d.length; i+=4) {
-    const g = Math.round(d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114);
-    const v = g > thresh ? 255 : 0;
-    d[i] = d[i+1] = d[i+2] = v;
-  }
-}
+function decodeRegion(sx, sy, sw, sh, vidW, vidH) {
+  // Scale xuống để decode nhanh hơn (max 640px rộng)
+  const scale = Math.min(1, 640 / sw);
+  const dw = Math.floor(sw * scale);
+  const dh = Math.floor(sh * scale);
 
-// ZXing decode từ canvas
-function tryDecode(imgData, w, h) {
+  offscreen.width  = dw;
+  offscreen.height = dh;
+  octx.drawImage(vid, sx, sy, sw, sh, 0, 0, dw, dh);
+
   try {
-    const lum = new Uint8ClampedArray(w * h);
-    for (let i = 0; i < w * h; i++)
-      lum[i] = imgData.data[i*4]; // đã grayscale
-    const src = new ZXing.RGBLuminanceSource(lum, w, h);
-    const bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(src));
-    const result = reader.decode(bmp);
-    return result;
-  } catch(e) { return null; }
-}
-
-// Thử decode cả frame + vùng giữa (crop)
-function tryDecodeFull(imgData, w, h) {
-  // Thử full frame
-  let r = tryDecode(imgData, w, h);
-  if (r) return r;
-
-  // Thử crop vùng giữa 70%×50% (vùng khung quét)
-  const cx = Math.floor(w * 0.15);
-  const cy = Math.floor(h * 0.25);
-  const cw = Math.floor(w * 0.70);
-  const ch = Math.floor(h * 0.50);
-  const cropped = pctx.getImageData(cx, cy, cw, ch);
-  r = tryDecode(cropped, cw, ch);
-  return r;
-}
-
-let frameSkip = 0;
-function loop() {
-  if (!scanning) return;
-  frameSkip++;
-
-  // Luôn xử lý ảnh và hiển thị mỗi frame
-  const imgData = processFrame();
-
-  // Decode mỗi 2 frames để tránh lag
-  if (imgData && frameSkip % 2 === 0) {
-    const result = tryDecodeFull(imgData, proc.width, proc.height);
-    if (result) {
-      const text = result.getText();
-      const fmt  = result.getBarcodeFormat();
-      if (text !== lastText) {
-        lastText = text;
-        onDetected(text, ZXing.BarcodeFormat[fmt] || fmt);
-      }
+    const imgData = octx.getImageData(0, 0, dw, dh);
+    // Grayscale nhanh
+    const lum = new Uint8ClampedArray(dw * dh);
+    for (let i = 0; i < dw * dh; i++) {
+      lum[i] = (imgData.data[i*4]*77 + imgData.data[i*4+1]*150 + imgData.data[i*4+2]*29) >> 8;
     }
-  }
-
-  rafId = requestAnimationFrame(loop);
+    const src = new ZXing.RGBLuminanceSource(lum, dw, dh);
+    const bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(src));
+    return reader.decode(bmp);
+  } catch(e) { return null; }
 }
 
 function onDetected(text, fmt) {
   document.getElementById('rbox').style.display = 'block';
   document.getElementById('rv').textContent = text;
-  document.getElementById('rf').textContent = '📌 ' + fmt;
-  resInfo.style.opacity = '1';
-  setTimeout(() => resInfo.style.opacity = '0', 1500);
+  document.getElementById('rf').textContent = '📌 ' + (ZXing.BarcodeFormat[fmt] ?? fmt);
+
+  // Flash xanh nhẹ
+  flashEl.style.opacity = '1';
+  setTimeout(() => flashEl.style.opacity = '0', 250);
+
   if (navigator.vibrate) navigator.vibrate(80);
 
-  const e = { text, fmt: String(fmt), time: new Date().toLocaleTimeString('vi-VN') };
+  const e = { text, fmt: String(ZXing.BarcodeFormat[fmt] ?? fmt), time: new Date().toLocaleTimeString('vi-VN') };
   history.unshift(e);
   if (history.length > 50) history = history.slice(0, 50);
-  localStorage.setItem('bh2', JSON.stringify(history));
+  localStorage.setItem('bh3', JSON.stringify(history));
   renderH();
 }
 
 function stopScan() {
   scanning = false;
-  if (rafId) cancelAnimationFrame(rafId);
+  clearTimeout(decodeTimer);
   if (stream) stream.getTracks().forEach(t => t.stop());
   stream = null; vid.srcObject = null;
-  dctx.clearRect(0, 0, disp.width, disp.height);
   document.getElementById('bstart').style.display = 'flex';
   document.getElementById('bstop').style.display  = 'none';
   document.getElementById('bflip').style.display  = 'none';
   msgEl.textContent = 'Đã dừng.';
+  camInfo.textContent = '';
   lastText = '';
 }
 
@@ -462,8 +357,7 @@ async function flipCam() {
 }
 
 function copyR() {
-  const t = document.getElementById('rv').textContent;
-  navigator.clipboard.writeText(t).then(() => {
+  navigator.clipboard.writeText(document.getElementById('rv').textContent).then(() => {
     const b = document.querySelector('.rb');
     b.textContent = '✓ Đã sao chép!';
     setTimeout(() => b.textContent = '⎘ Sao chép', 1500);
@@ -488,7 +382,7 @@ function renderH() {
 
 function clearH() {
   history = [];
-  localStorage.removeItem('bh2');
+  localStorage.removeItem('bh3');
   renderH();
 }
 </script>
