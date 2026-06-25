@@ -328,8 +328,59 @@
       if (navigator.vibrate) navigator.vibrate(80);
     }
 
-    function startScan() {
+    async function applySharpnessConstraints(videoTrack) {
+      try {
+        const caps = videoTrack.getCapabilities();
+        const constraints = {};
+
+        if (caps.focusMode && caps.focusMode.includes('continuous')) {
+          constraints.focusMode = 'continuous';
+        }
+        if (caps.exposureMode && caps.exposureMode.includes('continuous')) {
+          constraints.exposureMode = 'continuous';
+        }
+        if (caps.whiteBalanceMode && caps.whiteBalanceMode.includes('continuous')) {
+          constraints.whiteBalanceMode = 'continuous';
+        }
+        if (caps.zoom) {
+          constraints.zoom = caps.zoom.min ?? 1;
+        }
+        if (caps.sharpness) {
+          constraints.sharpness = caps.sharpness.max ?? caps.sharpness.step * 5;
+        }
+        if (Object.keys(constraints).length > 0) {
+          await videoTrack.applyConstraints({ advanced: [constraints] });
+        }
+      } catch(e) {
+        console.warn('Không áp được constraints nét:', e);
+      }
+    }
+
+    async function startScan() {
       if (scanner) return;
+
+      document.getElementById('status-msg').textContent = 'Đang mở camera...';
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: currentCamera },
+            width: { ideal: 1920, min: 1280 },
+            height: { ideal: 1080, min: 720 },
+            frameRate: { ideal: 30, min: 15 },
+            focusMode: 'continuous',
+            resizeMode: 'none',
+          }
+        });
+
+        const tracks = stream.getVideoTracks();
+        if (tracks.length > 0) {
+          await applySharpnessConstraints(tracks[0]);
+        }
+        stream.getTracks().forEach(t => t.stop());
+      } catch(e) {
+        console.warn('getUserMedia cao res thất bại, dùng mặc định:', e);
+      }
 
       scanner = new Html5Qrcode('reader');
       const config = {
@@ -352,17 +403,36 @@
         ]
       };
 
+      const videoConstraints = {
+        facingMode: currentCamera,
+        width: { ideal: 1920, min: 1280 },
+        height: { ideal: 1080, min: 720 },
+        frameRate: { ideal: 30 },
+        focusMode: 'continuous',
+      };
+
       scanner.start(
-        { facingMode: currentCamera },
+        videoConstraints,
         config,
         onSuccess
-      ).then(() => {
+      ).then(async () => {
         document.getElementById('btn-start').style.display = 'none';
         document.getElementById('btn-stop').style.display = 'flex';
         document.getElementById('btn-flip').style.display = 'flex';
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('status-msg').textContent = 'Đang quét...';
         lastResult = '';
+
+        setTimeout(async () => {
+          const video = document.querySelector('#reader video');
+          if (video && video.srcObject) {
+            const tracks = video.srcObject.getVideoTracks();
+            if (tracks.length > 0) {
+              await applySharpnessConstraints(tracks[0]);
+            }
+          }
+        }, 1000);
+
       }).catch(err => {
         document.getElementById('status-msg').textContent = '❌ Không thể mở camera: ' + err;
         scanner = null;
