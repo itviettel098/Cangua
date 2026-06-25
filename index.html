@@ -1,500 +1,365 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quét Barcode</title>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quét Barcode & QR</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #0f0f0f;
+      font-family: system-ui, sans-serif;
+      background: #0a0a0a;
       color: #f0f0f0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: 20px 16px;
     }
+    h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .sub { font-size: 12px; color: #666; margin-bottom: 16px; }
 
-    h1 {
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.3px;
-      margin-bottom: 6px;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: #888;
-      margin-bottom: 24px;
-    }
-
-    #reader-container {
+    #cam-wrap {
       width: 100%;
-      max-width: 420px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 2px solid #2a2a2a;
-      background: #1a1a1a;
+      max-width: 440px;
+      aspect-ratio: 1;
       position: relative;
+      background: #111;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1.5px solid #222;
     }
-
-    #reader {
+    #cam {
       width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
+    #canvas { display: none; }
 
-    #reader video {
-      border-radius: 0 !important;
-    }
-
-    .scan-overlay {
+    .frame {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 200px;
-      height: 200px;
+      width: 60%; height: 60%;
       pointer-events: none;
-      z-index: 10;
     }
-
-    .corner {
+    .frame::before, .frame::after,
+    .frame .b::before, .frame .b::after {
+      content: '';
       position: absolute;
-      width: 28px;
-      height: 28px;
+      width: 28px; height: 28px;
       border-color: #00e676;
       border-style: solid;
     }
-    .corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-    .corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-    .corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-    .corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+    .frame::before  { top: 0; left: 0;  border-width: 3px 0 0 3px; border-radius: 5px 0 0 0; }
+    .frame::after   { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 5px 0 0; }
+    .frame .b::before { bottom: 0; left: 0;  border-width: 0 0 3px 3px; border-radius: 0 0 0 5px; }
+    .frame .b::after  { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 5px 0; }
 
-    .scan-line {
+    .scanline {
       position: absolute;
-      left: 6px;
-      right: 6px;
+      left: 20%; width: 60%;
       height: 2px;
       background: linear-gradient(to right, transparent, #00e676, transparent);
-      animation: scanMove 1.6s ease-in-out infinite;
-      top: 0;
+      animation: scan 1.8s ease-in-out infinite;
+      top: 20%;
+    }
+    @keyframes scan {
+      0%   { top: 20%; }
+      50%  { top: 78%; }
+      100% { top: 20%; }
     }
 
-    @keyframes scanMove {
-      0%   { top: 8px; opacity: 1; }
-      48%  { top: calc(100% - 10px); opacity: 1; }
-      50%  { opacity: 0; }
-      52%  { top: 8px; opacity: 0; }
-      54%  { opacity: 1; }
-      100% { top: calc(100% - 10px); opacity: 1; }
+    #info {
+      position: absolute;
+      bottom: 8px; left: 0; right: 0;
+      text-align: center;
+      font-size: 11px;
+      color: #00e676;
+      opacity: 0;
+      transition: opacity 0.3s;
     }
 
-    .controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-      width: 100%;
-      max-width: 420px;
+    .btns {
+      display: flex; gap: 10px;
+      margin-top: 14px;
+      width: 100%; max-width: 440px;
     }
-
     button {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-size: 14px;
-      font-weight: 500;
+      flex: 1; padding: 11px;
+      border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 500;
       cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
+      transition: transform 0.1s, opacity 0.15s;
     }
-    button:active { transform: scale(0.97); }
+    button:active { transform: scale(0.96); }
+    #btn-start { background: #00e676; color: #000; }
+    #btn-stop  { background: #222; color: #eee; display: none; }
+    #btn-flip  { background: #1a1a1a; color: #eee; border: 1px solid #333; flex: none; width: 48px; display: none; }
 
-    #btn-start {
-      background: #00e676;
-      color: #000;
-    }
-
-    #btn-stop {
-      background: #2a2a2a;
-      color: #f0f0f0;
-      display: none;
-    }
-
-    #btn-flip {
-      background: #1e1e1e;
-      color: #f0f0f0;
-      border: 1px solid #333;
-      max-width: 52px;
-      flex: none;
-      display: none;
+    #msg {
+      margin-top: 10px;
+      font-size: 12px; color: #555;
+      text-align: center; min-height: 18px;
     }
 
     #result-box {
-      margin-top: 20px;
-      width: 100%;
-      max-width: 420px;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 14px;
-      padding: 16px;
+      margin-top: 14px;
+      width: 100%; max-width: 440px;
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 14px;
       display: none;
     }
+    .rlabel { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #00e676; margin-bottom: 5px; }
+    .rvalue { font-size: 16px; font-weight: 500; word-break: break-all; margin-bottom: 6px; }
+    .rfmt   { font-size: 11px; color: #555; }
+    .rbtn   { margin-top: 10px; width: 100%; background: #1e1e1e; color: #00e676; border: 1px solid #2a2a2a; padding: 8px; border-radius: 8px; font-size: 13px; }
 
-    .result-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #00e676;
-      margin-bottom: 6px;
-    }
-
-    .result-value {
-      font-size: 17px;
-      font-weight: 500;
-      word-break: break-all;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-
-    .result-meta {
-      font-size: 12px;
-      color: #666;
-    }
-
-    .copy-btn {
-      margin-top: 10px;
-      width: 100%;
-      background: #222;
-      color: #00e676;
-      border: 1px solid #333;
-      padding: 9px;
-      border-radius: 8px;
-      font-size: 13px;
-    }
-
-    #history {
-      margin-top: 20px;
-      width: 100%;
-      max-width: 420px;
-    }
-
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .history-title {
-      font-size: 13px;
-      color: #666;
-    }
-
-    #clear-history {
-      font-size: 12px;
-      color: #555;
-      background: none;
-      border: none;
+    #hist { margin-top: 16px; width: 100%; max-width: 440px; }
+    .hdr  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .htitle { font-size: 12px; color: #555; }
+    #hclear { font-size: 12px; color: #444; background: none; border: none; cursor: pointer; flex: none; }
+    .hitem {
+      background: #141414; border: 1px solid #1e1e1e;
+      border-radius: 10px; padding: 9px 12px;
+      margin-bottom: 6px; font-size: 13px;
+      display: flex; justify-content: space-between; gap: 8px;
       cursor: pointer;
-      padding: 4px 8px;
-      flex: none;
-      max-width: none;
     }
-
-    .history-item {
-      background: #1a1a1a;
-      border: 1px solid #222;
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-bottom: 8px;
-      font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-    }
-
-    .history-text {
-      word-break: break-all;
-      color: #ddd;
-    }
-
-    .history-time {
-      font-size: 11px;
-      color: #444;
-      white-space: nowrap;
-      flex-shrink: 0;
-      padding-top: 2px;
-    }
-
-    .badge {
-      display: inline-block;
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      background: #1e2e20;
-      color: #00e676;
-      margin-bottom: 6px;
-    }
-
-    #status-msg {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #666;
-      text-align: center;
-      min-height: 20px;
-    }
-
-    .success-flash {
-      animation: flash 0.4s ease;
-    }
-    @keyframes flash {
-      0%, 100% { border-color: #2a2a2a; }
-      50% { border-color: #00e676; box-shadow: 0 0 16px #00e67640; }
-    }
+    .hitem:active { opacity: 0.7; }
+    .htxt { word-break: break-all; color: #ccc; }
+    .htime { font-size: 11px; color: #444; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
+    .hfmt { font-size: 10px; color: #00e676; margin-bottom: 3px; }
   </style>
 </head>
 <body>
 
-  <h1>📷 Quét Barcode / QR</h1>
-  <p class="subtitle">Hỗ trợ QR Code, EAN, Code128, UPC, Data Matrix...</p>
+<h1>📷 Quét Barcode / QR Code</h1>
+<p class="sub">Siêu nét — dùng camera độ phân giải tối đa</p>
 
-  <div id="reader-container">
-    <div id="reader"></div>
-    <div class="scan-overlay" id="overlay" style="display:none">
-      <div class="corner tl"></div>
-      <div class="corner tr"></div>
-      <div class="corner bl"></div>
-      <div class="corner br"></div>
-      <div class="scan-line"></div>
-    </div>
+<div id="cam-wrap">
+  <video id="cam" autoplay playsinline muted></video>
+  <canvas id="canvas"></canvas>
+  <div class="frame"><div class="b"></div></div>
+  <div class="scanline"></div>
+  <div id="info"></div>
+</div>
+
+<p id="msg">Nhấn Bắt đầu để mở camera</p>
+
+<div class="btns">
+  <button id="btn-start" onclick="startScan()">▶ Bắt đầu</button>
+  <button id="btn-stop"  onclick="stopScan()">⏹ Dừng</button>
+  <button id="btn-flip"  onclick="flipCam()" title="Đổi camera">🔄</button>
+</div>
+
+<div id="result-box">
+  <div class="rlabel">Kết quả</div>
+  <div class="rvalue" id="rval"></div>
+  <div class="rfmt"   id="rfmt"></div>
+  <button class="rbtn" onclick="copyResult()">⎘ Sao chép</button>
+</div>
+
+<div id="hist">
+  <div class="hdr">
+    <span class="htitle">Lịch sử</span>
+    <button id="hclear" onclick="clearHist()">Xóa tất cả</button>
   </div>
+  <div id="hlist"></div>
+</div>
 
-  <p id="status-msg">Nhấn Bắt đầu để mở camera</p>
+<script>
+  const video   = document.getElementById('cam');
+  const canvas  = document.getElementById('canvas');
+  const ctx     = canvas.getContext('2d', { willReadFrequently: true });
+  const msgEl   = document.getElementById('msg');
+  const infoEl  = document.getElementById('info');
 
-  <div class="controls">
-    <button id="btn-start" onclick="startScan()">▶ Bắt đầu</button>
-    <button id="btn-stop" onclick="stopScan()">⏹ Dừng</button>
-    <button id="btn-flip" onclick="flipCamera()" title="Đổi camera">🔄</button>
-  </div>
+  let stream = null;
+  let detector = null;
+  let scanning = false;
+  let facingMode = 'environment';
+  let lastText = '';
+  let rafId = null;
+  let history = JSON.parse(localStorage.getItem('bh') || '[]');
 
-  <div id="result-box">
-    <div class="result-label">Kết quả quét</div>
-    <div class="result-value" id="result-text"></div>
-    <div class="result-meta" id="result-format"></div>
-    <button class="copy-btn" onclick="copyResult()">⎘ Sao chép</button>
-  </div>
+  renderHist();
 
-  <div id="history">
-    <div class="history-header">
-      <span class="history-title">Lịch sử quét</span>
-      <button id="clear-history" onclick="clearHistory()">Xóa tất cả</button>
-    </div>
-    <div id="history-list"></div>
-  </div>
+  // BarcodeDetector (Chrome Android / Edge / Safari 17+)
+  const FORMATS = [
+    'qr_code','aztec','code_128','code_39','code_93',
+    'codabar','data_matrix','ean_13','ean_8','itf',
+    'pdf417','upc_a','upc_e'
+  ];
 
-  <script>
-    let scanner = null;
-    let currentCamera = 'environment';
-    let lastResult = '';
-    let history = JSON.parse(localStorage.getItem('scan_history') || '[]');
-
-    renderHistory();
-
-    function onSuccess(decodedText, decodedResult) {
-      if (decodedText === lastResult) return;
-      lastResult = decodedText;
-
-      const format = decodedResult?.result?.format?.formatName || 'Unknown';
-
-      document.getElementById('result-box').style.display = 'block';
-      document.getElementById('result-text').textContent = decodedText;
-      document.getElementById('result-format').textContent = '📌 Định dạng: ' + format;
-
-      const container = document.getElementById('reader-container');
-      container.classList.remove('success-flash');
-      void container.offsetWidth;
-      container.classList.add('success-flash');
-
-      const entry = { text: decodedText, format, time: new Date().toLocaleTimeString('vi-VN') };
-      history.unshift(entry);
-      if (history.length > 30) history = history.slice(0, 30);
-      localStorage.setItem('scan_history', JSON.stringify(history));
-      renderHistory();
-
-      if (navigator.vibrate) navigator.vibrate(80);
-    }
-
-    async function applySharpnessConstraints(videoTrack) {
+  async function initDetector() {
+    if ('BarcodeDetector' in window) {
       try {
-        const caps = videoTrack.getCapabilities();
-        const constraints = {};
-
-        if (caps.focusMode && caps.focusMode.includes('continuous')) {
-          constraints.focusMode = 'continuous';
-        }
-        if (caps.exposureMode && caps.exposureMode.includes('continuous')) {
-          constraints.exposureMode = 'continuous';
-        }
-        if (caps.whiteBalanceMode && caps.whiteBalanceMode.includes('continuous')) {
-          constraints.whiteBalanceMode = 'continuous';
-        }
-        if (caps.zoom) {
-          constraints.zoom = caps.zoom.min ?? 1;
-        }
-        if (caps.sharpness) {
-          constraints.sharpness = caps.sharpness.max ?? caps.sharpness.step * 5;
-        }
-        if (Object.keys(constraints).length > 0) {
-          await videoTrack.applyConstraints({ advanced: [constraints] });
-        }
-      } catch(e) {
-        console.warn('Không áp được constraints nét:', e);
-      }
+        detector = new BarcodeDetector({ formats: FORMATS });
+        return true;
+      } catch(e) {}
     }
+    return false;
+  }
 
-    async function startScan() {
-      if (scanner) return;
-
-      document.getElementById('status-msg').textContent = 'Đang mở camera...';
-
+  async function getBestStream() {
+    // Thử từ cao xuống thấp để lấy độ nét max
+    const configs = [
+      { facingMode, width: { ideal: 3840 }, height: { ideal: 2160 }, focusMode: 'continuous', advanced:[{focusMode:'continuous', exposureMode:'continuous', whiteBalanceMode:'continuous'}] },
+      { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 }, focusMode: 'continuous' },
+      { facingMode, width: { ideal: 1280 }, height: { ideal: 720  } },
+      { facingMode },
+    ];
+    for (const c of configs) {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: currentCamera },
-            width: { ideal: 1920, min: 1280 },
-            height: { ideal: 1080, min: 720 },
-            frameRate: { ideal: 30, min: 15 },
-            focusMode: 'continuous',
-            resizeMode: 'none',
-          }
-        });
+        const s = await navigator.mediaDevices.getUserMedia({ video: c });
+        return s;
+      } catch(e) {}
+    }
+    throw new Error('Không mở được camera');
+  }
 
-        const tracks = stream.getVideoTracks();
-        if (tracks.length > 0) {
-          await applySharpnessConstraints(tracks[0]);
+  async function applyFocusMax(s) {
+    for (const track of s.getVideoTracks()) {
+      try {
+        const caps = track.getCapabilities();
+        const adv = {};
+        if (caps.focusMode?.includes('continuous'))       adv.focusMode = 'continuous';
+        if (caps.exposureMode?.includes('continuous'))    adv.exposureMode = 'continuous';
+        if (caps.whiteBalanceMode?.includes('continuous')) adv.whiteBalanceMode = 'continuous';
+        // Zoom min = nét nhất (không zoom = ít mờ nhất)
+        if (caps.zoom) adv.zoom = caps.zoom.min;
+        // Sharpness max
+        if (caps.sharpness) adv.sharpness = caps.sharpness.max;
+        // Contrast max nhẹ
+        if (caps.contrast) adv.contrast = Math.min(caps.contrast.max, caps.contrast.max * 0.8);
+        if (Object.keys(adv).length) await track.applyConstraints({ advanced: [adv] });
+      } catch(e) { console.warn('applyConstraints:', e); }
+    }
+  }
+
+  async function startScan() {
+    if (scanning) return;
+    msgEl.textContent = 'Đang khởi động camera...';
+
+    const hasDetector = await initDetector();
+    if (!hasDetector) {
+      msgEl.textContent = '❌ Trình duyệt không hỗ trợ BarcodeDetector. Dùng Chrome Android hoặc Edge.';
+      return;
+    }
+
+    try {
+      stream = await getBestStream();
+      video.srcObject = stream;
+      await video.play();
+
+      // Đợi video ổn định rồi áp focus max
+      setTimeout(() => applyFocusMax(stream), 800);
+
+      scanning = true;
+      document.getElementById('btn-start').style.display = 'none';
+      document.getElementById('btn-stop').style.display  = 'flex';
+      document.getElementById('btn-flip').style.display  = 'flex';
+
+      const t = stream.getVideoTracks()[0]?.getSettings();
+      msgEl.textContent = t ? `📷 ${t.width}×${t.height} @ ${Math.round(t.frameRate||0)}fps` : 'Đang quét...';
+
+      lastText = '';
+      loop();
+    } catch(e) {
+      msgEl.textContent = '❌ ' + e.message;
+    }
+  }
+
+  async function loop() {
+    if (!scanning) return;
+    if (video.readyState >= 2) {
+      try {
+        const barcodes = await detector.detect(video);
+        if (barcodes.length > 0) {
+          const b = barcodes[0];
+          if (b.rawValue !== lastText) {
+            lastText = b.rawValue;
+            onDetected(b.rawValue, b.format);
+          }
         }
-        stream.getTracks().forEach(t => t.stop());
-      } catch(e) {
-        console.warn('getUserMedia cao res thất bại, dùng mặc định:', e);
-      }
-
-      scanner = new Html5Qrcode('reader');
-      const config = {
-        fps: 30,
-        qrbox: { width: 200, height: 200 },
-        aspectRatio: 1.0,
-        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.DATA_MATRIX,
-          Html5QrcodeSupportedFormats.PDF_417,
-          Html5QrcodeSupportedFormats.ITF,
-          Html5QrcodeSupportedFormats.AZTEC,
-        ]
-      };
-
-      const videoConstraints = {
-        facingMode: currentCamera,
-        width: { ideal: 1920, min: 1280 },
-        height: { ideal: 1080, min: 720 },
-        frameRate: { ideal: 30 },
-        focusMode: 'continuous',
-      };
-
-      scanner.start(
-        videoConstraints,
-        config,
-        onSuccess
-      ).then(async () => {
-        document.getElementById('btn-start').style.display = 'none';
-        document.getElementById('btn-stop').style.display = 'flex';
-        document.getElementById('btn-flip').style.display = 'flex';
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById('status-msg').textContent = 'Đang quét...';
-        lastResult = '';
-
-        setTimeout(async () => {
-          const video = document.querySelector('#reader video');
-          if (video && video.srcObject) {
-            const tracks = video.srcObject.getVideoTracks();
-            if (tracks.length > 0) {
-              await applySharpnessConstraints(tracks[0]);
-            }
-          }
-        }, 1000);
-
-      }).catch(err => {
-        document.getElementById('status-msg').textContent = '❌ Không thể mở camera: ' + err;
-        scanner = null;
-      });
+      } catch(e) {}
     }
+    rafId = requestAnimationFrame(loop);
+  }
 
-    function stopScan() {
-      if (!scanner) return;
-      scanner.stop().then(() => {
-        scanner.clear();
-        scanner = null;
-        document.getElementById('btn-start').style.display = 'flex';
-        document.getElementById('btn-stop').style.display = 'none';
-        document.getElementById('btn-flip').style.display = 'none';
-        document.getElementById('overlay').style.display = 'none';
-        document.getElementById('status-msg').textContent = 'Đã dừng. Nhấn Bắt đầu để quét lại.';
-      });
+  function onDetected(text, format) {
+    document.getElementById('result-box').style.display = 'block';
+    document.getElementById('rval').textContent = text;
+    document.getElementById('rfmt').textContent = '📌 ' + (format || 'unknown');
+
+    infoEl.textContent = '✓ Quét được!';
+    infoEl.style.opacity = '1';
+    setTimeout(() => infoEl.style.opacity = '0', 1500);
+
+    if (navigator.vibrate) navigator.vibrate(80);
+
+    const entry = { text, format: format || '?', time: new Date().toLocaleTimeString('vi-VN') };
+    history.unshift(entry);
+    if (history.length > 50) history = history.slice(0, 50);
+    localStorage.setItem('bh', JSON.stringify(history));
+    renderHist();
+  }
+
+  function stopScan() {
+    scanning = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = null;
+    video.srcObject = null;
+    document.getElementById('btn-start').style.display = 'flex';
+    document.getElementById('btn-stop').style.display  = 'none';
+    document.getElementById('btn-flip').style.display  = 'none';
+    msgEl.textContent = 'Đã dừng.';
+    lastText = '';
+  }
+
+  async function flipCam() {
+    facingMode = facingMode === 'environment' ? 'user' : 'environment';
+    stopScan();
+    await new Promise(r => setTimeout(r, 300));
+    startScan();
+  }
+
+  function copyResult() {
+    const t = document.getElementById('rval').textContent;
+    navigator.clipboard.writeText(t).then(() => {
+      const b = document.querySelector('.rbtn');
+      b.textContent = '✓ Đã sao chép!';
+      setTimeout(() => b.textContent = '⎘ Sao chép', 1500);
+    });
+  }
+
+  function renderHist() {
+    const el = document.getElementById('hlist');
+    if (!history.length) {
+      el.innerHTML = '<p style="font-size:12px;color:#444;text-align:center;padding:10px 0">Chưa có lịch sử</p>';
+      return;
     }
-
-    function flipCamera() {
-      currentCamera = currentCamera === 'environment' ? 'user' : 'environment';
-      if (scanner) {
-        stopScan();
-        setTimeout(startScan, 400);
-      }
-    }
-
-    function copyResult() {
-      const text = document.getElementById('result-text').textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector('.copy-btn');
-        btn.textContent = '✓ Đã sao chép!';
-        setTimeout(() => btn.textContent = '⎘ Sao chép', 1500);
-      });
-    }
-
-    function renderHistory() {
-      const list = document.getElementById('history-list');
-      if (history.length === 0) {
-        list.innerHTML = '<p style="font-size:13px;color:#444;text-align:center;padding:12px 0">Chưa có lịch sử</p>';
-        return;
-      }
-      list.innerHTML = history.map(h => `
-        <div class="history-item" onclick="copyText('${h.text.replace(/'/g, "\\'")}')">
-          <div>
-            <div class="badge">${h.format}</div>
-            <div class="history-text">${h.text}</div>
-          </div>
-          <div class="history-time">${h.time}</div>
+    el.innerHTML = history.map(h => `
+      <div class="hitem" onclick="navigator.clipboard.writeText('${h.text.replace(/'/g,"\\'")}')">
+        <div>
+          <div class="hfmt">${h.format}</div>
+          <div class="htxt">${h.text}</div>
         </div>
-      `).join('');
-    }
+        <div class="htime">${h.time}</div>
+      </div>
+    `).join('');
+  }
 
-    function clearHistory() {
-      history = [];
-      localStorage.removeItem('scan_history');
-      renderHistory();
-    }
-
-    function copyText(text) {
-      navigator.clipboard.writeText(text);
-    }
-  </script>
+  function clearHist() {
+    history = [];
+    localStorage.removeItem('bh');
+    renderHist();
+  }
+</script>
 </body>
 </html>
